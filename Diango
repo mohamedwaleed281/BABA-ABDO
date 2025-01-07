@@ -1,4 +1,0 @@
-pip install django djangorestframework
-django-admin startproject restaurant_management
-cd restaurant_management
-django-admin startapp api
