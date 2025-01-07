@@ -14,3 +14,15 @@ restaurant_management/
 │   ├── signals.py
 │   ├── tasks.py
 │   ├── recommendations.py
+
+restaurant-management-frontend/
+├── src/
+│   ├── components/
+│   │   ├── Dashboard.js
+│   │   ├── Sales.js
+│   │   ├── Inventory.js
+│   │   ├── Expenses.js
+│   │   ├── Recommendations.js
+│   │   ├── Alerts.js
+│   ├── App.js
+│   ├── index.js
