@@ -1,18 +1,3 @@
- restaurant-management-frontend/
-├── src/
-│   ├── components/
-│   │   ├── Dashboard.js
-│   │   ├── Sales.js
-│   │   ├── Inventory.js
-│   │   ├── Expenses.js
-│   │   ├── Recommendations.js
-│   │   ├── Alerts.js
-│   ├── App.js
-│   ├── index.js
-
-
-
-
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Dashboard from "./components/Dashboard";
