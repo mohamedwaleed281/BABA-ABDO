@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق طلبات المطعم</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1> بابا عبده </h1>
+        
+        <label for="num-tables">عدد الترابيزات:</label>
+        <input type="number" id="num-tables" min="1" max="10" value="1">
+        <button onclick="createTables()">إنشاء الترابيزات</button>
+        
+        <div id="tables"></div>
+
+        <!-- قائمة الطعام كنافذة منبثقة -->
+        <div id="menu-popup" class="menu-popup">
+            <h2>القائمة</h2>
+            <div class="menu">
+                <!-- قسم المكرونة -->
+                <div class="section">
+                    <h3>المكرونة</h3>
+                    <button onclick="chooseExtraOption('مكرونة صغير', 25)">مكرونة صغير - 25</button>
+                    <button onclick="chooseExtraOption('مكرونة وسط', 30)">مكرونة وسط - 30</button>
+                    <button onclick="chooseExtraOption('مكرونة كبير', 35)">مكرونة كبير - 35</button>
+                    <button onclick="chooseExtraOption('مكرونة كينج', 45)">مكرونة كينج - 45</button>
+                </div>   <!-- قسم الكشري -->
+                <div class="section">
+                    <h3>الكشري</h3>
+                    <button onclick="addOrderToActiveTable('كشري صغير', 25)">كشري صغير - 25</button>
+                    <button onclick="addOrderToActiveTable('كشري وسط', 30)">كشري وسط - 30</button>
+                    <button onclick="addOrderToActiveTable('كشري كبير', 35)">كشري كبير - 35</button>
+                    <button onclick="addOrderToActiveTable('كشري كينج', 45)">كشري كينج - 45</button>
+                </div>
+                
+                <!-- قسم الطواجن -->
+                <div class="section">
+                    <h3>الطواجن</h3>
+                    <button onclick="addOrderToActiveTable('طاجن فراخ', 45)">طاجن فراخ - 45</button>
+                    <button onclick="addOrderToActiveTable('طاجن لحمة', 45)">طاجن لحمة - 45</button>
+                </div>
+
+                <!-- قسم الإضافات -->
+                <div class="section">
+                    <h3>الإضافات والمشروبات</h3>
+                    <button onclick="addOrderToActiveTable('كبدة', 20)">كبدة - 20</button>
+                    <button onclick="addOrderToActiveTable('سجق', 20)">سجق - 20</button>
+                    <button onclick="addOrderToActiveTable('مكس', 20)">مكس - 20</button>
+                    <button onclick="addOrderToActiveTable('صلصة', 10)">صلصة -10</button>
+                    <button onclick="addOrderToActiveTable('تقلية', 10)">تقلية - 10</button>
+                    <button onclick="addOrderToActiveTable('عدس', 10)">عدس - 10</button>
+                    <button onclick="addOrderToActiveTable('مشروب غازي', 15)">مشروب غازي - 15</button>
+                    <button onclick="addOrderToActiveTable('أرز بلبن', 13)">أرز بلبن - 13</button>
+                    <button onclick="addOrderToActiveTable('مياه', 5)">مياه - 5</button>
+                </div>
+            </div>
+            <button onclick="closeMenu()">إغلاق</button>
+        </div>
+
+        <!-- نافذة اختيار إضافات كبدة/سجق/مكس/بدون -->
+        <div id="extra-option-popup" class="menu-popup">
+            <h3>اختر إضافة:</h3>
+            <button onclick="selectPastaType('كبدة')">كبدة</button>
+            <button onclick="selectPastaType('سجق')">سجق</button>
+            <button onclick="selectPastaType('مكس')">مكس</button>
+            <button onclick="selectPastaType('بدون')">بدون</button>
+            <button onclick="closeExtraOptionPopup()">إلغاء</button>
+        </div>
+
+<!-- نافذة اختيار نوع المكرونة -->
+        <div id="pasta-type-popup" class="menu-popup">
+            <h3>اختر نوع المكرونة:</h3>
+            <button onclick="addPastaOrder('اسباجتي')">اسباجتي</button>
+            <button onclick="addPastaOrder('مقصوصة')">مقصوصة</button>
+            <button onclick="addPastaOrder('مشكل')">مشكل</button>
+            <button onclick="closePastaTypePopup()">إلغاء</button>
+        </div>
+        
+        <!-- أسفل التطبيق -->
+        <footer class="footer">
+            <p>التطبيق تحت إشراف: <span>محمد وليد سعد</span></p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
