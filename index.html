@@ -3,88 +3,252 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق طلبات المطعم</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>بابا عبده</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            direction: rtl;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f8f8;
+        }
+
+        header {
+            background: #ff6600;
+            color: white;
+            padding: 15px;
+            font-size: 24px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            background: #ff6600;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background: #e65c00;
+        }
+
+        #tablesContainer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .table {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border: 2px solid #ff6600;
+            margin: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: #333;
+            color: white;
+            padding: 10px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        ul li {
+            background: white;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        ul li button {
+            background: red;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1> بابا عبده </h1>
-        
-        <label for="num-tables">عدد الترابيزات:</label>
-        <input type="number" id="num-tables" min="1" max="10" value="1">
-        <button onclick="createTables()">إنشاء الترابيزات</button>
-        
-        <div id="tables"></div>
+    <header>
+        <h1>بابا عبده</h1>
+    </header>
 
-        <!-- قائمة الطعام كنافذة منبثقة -->
-        <div id="menu-popup" class="menu-popup">
-            <h2>القائمة</h2>
-            <div class="menu">
-                <!-- قسم المكرونة -->
-                <div class="section">
-                    <h3>المكرونة</h3>
-                    <button onclick="chooseExtraOption('مكرونة صغير', 25)">مكرونة صغير - 25</button>
-                    <button onclick="chooseExtraOption('مكرونة وسط', 30)">مكرونة وسط - 30</button>
-                    <button onclick="chooseExtraOption('مكرونة كبير', 35)">مكرونة كبير - 35</button>
-                    <button onclick="chooseExtraOption('مكرونة كينج', 45)">مكرونة كينج - 45</button>
-                </div>   <!-- قسم الكشري -->
-                <div class="section">
-                    <h3>الكشري</h3>
-                    <button onclick="addOrderToActiveTable('كشري صغير', 25)">كشري صغير - 25</button>
-                    <button onclick="addOrderToActiveTable('كشري وسط', 30)">كشري وسط - 30</button>
-                    <button onclick="addOrderToActiveTable('كشري كبير', 35)">كشري كبير - 35</button>
-                    <button onclick="addOrderToActiveTable('كشري كينج', 45)">كشري كينج - 45</button>
-                </div>
-                
-                <!-- قسم الطواجن -->
-                <div class="section">
-                    <h3>الطواجن</h3>
-                    <button onclick="addOrderToActiveTable('طاجن فراخ', 45)">طاجن فراخ - 45</button>
-                    <button onclick="addOrderToActiveTable('طاجن لحمة', 45)">طاجن لحمة - 45</button>
-                </div>
+    <main id="main-content">
+        <button onclick="createTables()">إنشاء ترابيزات</button>
+        <button onclick="manageMenu()">إدارة المنيو</button>
+        <div id="tablesContainer"></div>
+    </main>
 
-                <!-- قسم الإضافات -->
-                <div class="section">
-                    <h3>الإضافات والمشروبات</h3>
-                    <button onclick="addOrderToActiveTable('كبدة', 20)">كبدة - 20</button>
-                    <button onclick="addOrderToActiveTable('سجق', 20)">سجق - 20</button>
-                    <button onclick="addOrderToActiveTable('مكس', 20)">مكس - 20</button>
-                    <button onclick="addOrderToActiveTable('صلصة', 10)">صلصة -10</button>
-                    <button onclick="addOrderToActiveTable('تقلية', 10)">تقلية - 10</button>
-                    <button onclick="addOrderToActiveTable('عدس', 10)">عدس - 10</button>
-                    <button onclick="addOrderToActiveTable('مشروب غازي', 15)">مشروب غازي - 15</button>
-                    <button onclick="addOrderToActiveTable('أرز بلبن', 13)">أرز بلبن - 13</button>
-                    <button onclick="addOrderToActiveTable('مياه', 5)">مياه - 5</button>
-                </div>
-            </div>
-            <button onclick="closeMenu()">إغلاق</button>
-        </div>
+    <footer>
+        <p>العبد الفقير إلى الله محمد وليد سعد يرحب بكم في تطبيق بابا عبده</p>
+    </footer>
 
-        <!-- نافذة اختيار إضافات كبدة/سجق/مكس/بدون -->
-        <div id="extra-option-popup" class="menu-popup">
-            <h3>اختر إضافة:</h3>
-            <button onclick="selectPastaType('كبدة')">كبدة</button>
-            <button onclick="selectPastaType('سجق')">سجق</button>
-            <button onclick="selectPastaType('مكس')">مكس</button>
-            <button onclick="selectPastaType('بدون')">بدون</button>
-            <button onclick="closeExtraOptionPopup()">إلغاء</button>
-        </div>
+    <script>
+        function loadHomeScreen() {
+            let main = document.getElementById("main-content");
+            main.innerHTML = `
+                <button onclick="createTables()">إنشاء ترابيزات</button>
+                <button onclick="manageMenu()">إدارة المنيو</button>
+                <div id="tablesContainer"></div>
+            `;
+            loadTables();
+        }
 
-<!-- نافذة اختيار نوع المكرونة -->
-        <div id="pasta-type-popup" class="menu-popup">
-            <h3>اختر نوع المكرونة:</h3>
-            <button onclick="addPastaOrder('اسباجتي')">اسباجتي</button>
-            <button onclick="addPastaOrder('مقصوصة')">مقصوصة</button>
-            <button onclick="addPastaOrder('مشكل')">مشكل</button>
-            <button onclick="closePastaTypePopup()">إلغاء</button>
-        </div>
-        
-        <!-- أسفل التطبيق -->
-        <footer class="footer">
-            <p>التطبيق تحت إشراف: <span>محمد وليد سعد</span></p>
-        </footer>
-    </div>
+        function createTables() {
+            let num = prompt("كم عدد الترابيزات؟");
+            if (!num || isNaN(num) || num <= 0) return;
+            localStorage.setItem("numTables", num);
+            loadTables();
+        }
 
-    <script src="script.js"></script>
+        function loadTables() {
+            let num = localStorage.getItem("numTables") || 0;
+            let container = document.getElementById("tablesContainer");
+            container.innerHTML = "";
+            for (let i = 1; i <= num; i++) {
+                let table = document.createElement("div");
+                table.classList.add("table");
+                table.textContent = `طاولة ${i}`;
+                table.onclick = () => openTable(i);
+                container.appendChild(table);
+            }
+        }
+
+        function openTable(tableNumber) {
+            localStorage.setItem("currentTable", tableNumber);
+            let main = document.getElementById("main-content");
+            main.innerHTML = `
+                <h2>إدارة الطلبات - طاولة ${tableNumber}</h2>
+                <h3>قائمة الطعام</h3>
+                <div id="menu"></div>
+                <h3>الطلبات</h3>
+                <ul id="ordersList"></ul>
+                <button onclick="clearOrders()">حذف الكل</button>
+                <button onclick="loadHomeScreen()">رجوع</button>
+            `;
+            displayMenu();
+            displayOrders();
+        }
+
+        let menuItems = JSON.parse(localStorage.getItem("menu")) || [
+            { name: "بيتزا", price: 50 },
+            { name: "برجر", price: 40 },
+            { name: "مشروب غازي", price: 10 }
+        ];
+
+        function displayMenu() {
+            let menuDiv = document.getElementById("menu");
+            menuDiv.innerHTML = "";
+            menuItems.forEach(item => {
+                let button = document.createElement("button");
+                button.textContent = `${item.name} - ${item.price} جنيه`;
+                button.onclick = () => addToOrder(item);
+                menuDiv.appendChild(button);
+            });
+        }
+
+        function addToOrder(item) {
+            let tableNumber = localStorage.getItem("currentTable");
+            let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
+            orders.push(item);
+            localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));
+            displayOrders();
+        }
+
+        function displayOrders() {
+            let tableNumber = localStorage.getItem("currentTable");
+            let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
+            let list = document.getElementById("ordersList");
+            list.innerHTML = "";
+            orders.forEach((item, index) => {
+                let li = document.createElement("li");
+                li.textContent = `${item.name} - ${item.price} جنيه`;
+                let removeBtn = document.createElement("button");
+                removeBtn.textContent = "❌";
+                removeBtn.onclick = () => removeOrder(index);
+                li.appendChild(removeBtn);
+                list.appendChild(li);
+            });
+        }
+
+        function removeOrder(index) {
+            let tableNumber = localStorage.getItem("currentTable");
+            let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
+            orders.splice(index, 1);
+            localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));
+            displayOrders();
+        }
+
+        function clearOrders() {
+            let tableNumber = localStorage.getItem("currentTable");
+            localStorage.setItem(`orders_${tableNumber}`, JSON.stringify([]));
+            displayOrders();
+        }
+
+        function manageMenu() {
+            let main = document.getElementById("main-content");
+            main.innerHTML = `
+                <h2>إدارة المنيو</h2>
+                <input type="text" id="itemName" placeholder="اسم الصنف">
+                <input type="number" id="itemPrice" placeholder="السعر">
+                <button onclick="addItem()">إضافة</button>
+                <h3>المنيو الحالي</h3>
+                <ul id="menuList"></ul>
+                <button onclick="loadHomeScreen()">رجوع</button>
+            `;
+            displayMenuList();
+        }
+
+        function addItem() {
+            let name = document.getElementById("itemName").value;
+            let price = document.getElementById("itemPrice").value;
+            if (name && price) {
+                menuItems.push({ name, price });
+                localStorage.setItem("menu", JSON.stringify(menuItems));
+                displayMenuList();
+            }
+        }
+
+        function displayMenuList() {
+            let list = document.getElementById("menuList");
+            list.innerHTML = "";
+            menuItems.forEach((item, index) => {
+                let li = document.createElement("li");
+                li.textContent = `${item.name} - ${item.price} جنيه`;
+                let removeBtn = document.createElement("button");
+                removeBtn.textContent = "❌";
+                removeBtn.onclick = () => removeMenuItem(index);
+                li.appendChild(removeBtn);
+                list.appendChild(li);
+            });
+        }
+
+        function removeMenuItem(index) {
+            menuItems.splice(index, 1);
+            localStorage.setItem("menu", JSON.stringify(menuItems));
+            displayMenuList();
+        }
+
+        loadHomeScreen();
+    </script>
 </body>
 </html>
