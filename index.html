@@ -392,4 +392,522 @@
     let isDBReady = false;
 
     // تهيئة قاعدة البيانات
-    function init
+    function initDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open('KashkooliDB', 2);
+        
+        request.onupgradeneeded = (event) => {
+          const db = event.target.result;
+          if (!db.objectStoreNames.contains('folders')) {
+            db.createObjectStore('folders', { keyPath: 'id' });
+          }
+          if (!db.objectStoreNames.contains('media')) {
+            db.createObjectStore('media', { keyPath: 'id' });
+          }
+        };
+        
+        request.onsuccess = (event) => {
+          db = event.target.result;
+          isDBReady = true;
+          resolve();
+        };
+        
+        request.onerror = (event) => {
+          console.error('فشل فتح قاعدة البيانات:', event.target.error);
+          reject(event.target.error);
+        };
+      });
+    }
+
+    // تحميل البيانات من قاعدة البيانات
+    async function loadData() {
+      if (!isDBReady) await initDB();
+      
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(['folders'], 'readonly');
+        const store = transaction.objectStore('folders');
+        const request = store.getAll();
+        
+        request.onsuccess = (event) => {
+          folders = event.target.result || [];
+          renderFolders();
+          resolve();
+        };
+        
+        request.onerror = (event) => {
+          console.error('فشل تحميل البيانات:', event.target.error);
+          reject(event.target.error);
+        };
+      });
+    }
+
+    // حفظ البيانات في قاعدة البيانات
+    async function saveData() {
+      if (!isDBReady) await initDB();
+      
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(['folders'], 'readwrite');
+        const store = transaction.objectStore('folders');
+        
+        // حذف جميع السجلات القديمة
+        const clearRequest = store.clear();
+        
+        clearRequest.onsuccess = () => {
+          // إضافة السجلات الجديدة
+          folders.forEach(folder => {
+            store.put(folder);
+          });
+          resolve();
+        };
+        
+        clearRequest.onerror = (event) => {
+          console.error('فشل حفظ البيانات:', event.target.error);
+          reject(event.target.error);
+        };
+      });
+    }
+
+    // حفظ ملف وسائط في قاعدة البيانات
+    async function saveMediaFile(id, file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const transaction = db.transaction(['media'], 'readwrite');
+          const store = transaction.objectStore('media');
+          store.put({ id, data: event.target.result });
+          resolve();
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // جلب ملف وسائط من قاعدة البيانات
+    async function getMediaFile(id) {
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(['media'], 'readonly');
+        const store = transaction.objectStore('media');
+        const request = store.get(id);
+        
+        request.onsuccess = (event) => {
+          resolve(event.target.result?.data);
+        };
+        
+        request.onerror = (event) => {
+          reject(event.target.error);
+        };
+      });
+    }
+
+    // عرض المواد
+    function renderFolders() {
+      const foldersList = document.getElementById('foldersList');
+      foldersList.innerHTML = '';
+      
+      if (folders.length === 0) {
+        foldersList.innerHTML = '<p style="text-align: center; color: #666;">لا توجد مواد حتى الآن</p>';
+        return;
+      }
+      
+      folders.forEach(folder => {
+        const folderItem = document.createElement('div');
+        folderItem.className = 'list-item';
+        folderItem.innerHTML = `
+          <div class="item-title" onclick="openFolder('${folder.id}')">${folder.name}</div>
+          <div class="item-actions">
+            <button class="action-btn" onclick="editFolder('${folder.id}', event)">✏️</button>
+            <button class="action-btn" onclick="deleteFolder('${folder.id}', event)">🗑️</button>
+          </div>
+        `;
+        foldersList.appendChild(folderItem);
+      });
+    }
+
+    // إضافة مادة جديدة
+    async function addFolder() {
+      const name = prompt('أدخل اسم المادة:');
+      if (!name) return;
+      
+      const newFolder = {
+        id: generateId(),
+        name: name.trim(),
+        lessons: [],
+        createdAt: new Date().toISOString()
+      };
+      
+      folders.push(newFolder);
+      await saveData();
+      renderFolders();
+    }
+
+    // فتح المادة
+    function openFolder(folderId) {
+      currentFolderId = folderId;
+      const folder = folders.find(f => f.id === folderId);
+      if (!folder) return;
+      
+      renderLessons(folder.lessons);
+      showPage('lessonsPage');
+    }
+
+    // تعديل المادة
+    async function editFolder(folderId, event) {
+      event.stopPropagation();
+      const folder = folders.find(f => f.id === folderId);
+      if (!folder) return;
+      
+      const newName = prompt('تعديل اسم المادة:', folder.name);
+      if (!newName) return;
+      
+      folder.name = newName.trim();
+      await saveData();
+      renderFolders();
+    }
+
+    // حذف المادة
+    async function deleteFolder(folderId, event) {
+      event.stopPropagation();
+      if (!confirm('هل أنت متأكد من حذف هذه المادة وجميع دروسها؟')) return;
+      
+      folders = folders.filter(f => f.id !== folderId);
+      await saveData();
+      renderFolders();
+    }
+
+    // عرض الدروس
+    function renderLessons(lessons) {
+      const lessonsList = document.getElementById('lessonsList');
+      lessonsList.innerHTML = '';
+      
+      if (!lessons || lessons.length === 0) {
+        lessonsList.innerHTML = '<p style="text-align: center; color: #666;">لا توجد دروس حتى الآن</p>';
+        return;
+      }
+      
+      lessons.forEach(lesson => {
+        const lessonItem = document.createElement('div');
+        lessonItem.className = 'list-item';
+        lessonItem.innerHTML = `
+          <div class="item-title" onclick="openLesson('${lesson.id}')">${lesson.name}</div>
+          <div class="item-actions">
+            <button class="action-btn" onclick="editLesson('${lesson.id}', event)">✏️</button>
+            <button class="action-btn" onclick="deleteLesson('${lesson.id}', event)">🗑️</button>
+          </div>
+        `;
+        lessonsList.appendChild(lessonItem);
+      });
+    }
+
+    // إضافة درس جديد
+    async function addLesson() {
+      const name = prompt('أدخل اسم الدرس:');
+      if (!name) return;
+      
+      const folder = folders.find(f => f.id === currentFolderId);
+      if (!folder) return;
+      
+      const newLesson = {
+        id: generateId(),
+        name: name.trim(),
+        content: '',
+        createdAt: new Date().toISOString()
+      };
+      
+      folder.lessons.push(newLesson);
+      await saveData();
+      renderLessons(folder.lessons);
+    }
+
+    // فتح الدرس
+    async function openLesson(lessonId) {
+      currentLessonId = lessonId;
+      const folder = folders.find(f => f.id === currentFolderId);
+      if (!folder) return;
+      
+      const lesson = folder.lessons.find(l => l.id === lessonId);
+      if (!lesson) return;
+      
+      document.getElementById('lessonTitle').textContent = lesson.name;
+      document.getElementById('editor').innerHTML = lesson.content || '<div class="editable">ابدأ الكتابة هنا...</div>';
+      
+      // تحميل وسائط الدرس
+      await loadLessonMedia();
+      
+      showPage('editorPage');
+      setupEditorEvents();
+    }
+
+    // تحميل وسائط الدرس
+    async function loadLessonMedia() {
+      const mediaElements = document.querySelectorAll('[data-media-id]');
+      for (const element of mediaElements) {
+        const mediaId = element.getAttribute('data-media-id');
+        const mediaData = await getMediaFile(mediaId);
+        if (mediaData) {
+          if (element.tagName === 'IMG') {
+            element.src = mediaData;
+          } else if (element.tagName === 'AUDIO') {
+            element.src = mediaData;
+            setupAudioPlayer(element);
+          }
+        }
+      }
+    }
+
+    // تعديل الدرس
+    async function editLesson(lessonId, event) {
+      event.stopPropagation();
+      const folder = folders.find(f => f.id === currentFolderId);
+      if (!folder) return;
+      
+      const lesson = folder.lessons.find(l => l.id === lessonId);
+      if (!lesson) return;
+      
+      const newName = prompt('تعديل اسم الدرس:', lesson.name);
+      if (!newName) return;
+      
+      lesson.name = newName.trim();
+      await saveData();
+      renderLessons(folder.lessons);
+    }
+
+    // حذف الدرس
+    async function deleteLesson(lessonId, event) {
+      event.stopPropagation();
+      if (!confirm('هل أنت متأكد من حذف هذا الدرس؟')) return;
+      
+      const folder = folders.find(f => f.id === currentFolderId);
+      if (!folder) return;
+      
+      folder.lessons = folder.lessons.filter(l => l.id !== lessonId);
+      await saveData();
+      renderLessons(folder.lessons);
+    }
+
+    // العودة إلى صفحة الدروس
+    async function backToLessons() {
+      await saveCurrentLesson();
+      showPage('lessonsPage');
+    }
+
+    // حفظ الدرس الحالي
+    async function saveCurrentLesson() {
+      if (!currentFolderId || !currentLessonId) return;
+      
+      const folder = folders.find(f => f.id === currentFolderId);
+      if (!folder) return;
+      
+      const lesson = folder.lessons.find(l => l.id === currentLessonId);
+      if (!lesson) return;
+      
+      lesson.content = document.getElementById('editor').innerHTML;
+      lesson.updatedAt = new Date().toISOString();
+      
+      await saveData();
+    }
+
+    // إظهار الصفحة المحددة
+    function showPage(pageId) {
+      document.querySelectorAll('section').forEach(section => {
+        section.classList.remove('active');
+      });
+      document.getElementById(pageId).classList.add('active');
+    }
+
+    // توليد معرف فريد
+    function generateId() {
+      return Date.now().toString(36) + Math.random().toString(36).substring(2);
+    }
+
+    // إدراج نص في مكان المؤشر
+    function insertAtCursor(html) {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+      
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+      
+      const div = document.createElement('div');
+      div.innerHTML = html;
+      
+      const frag = document.createDocumentFragment();
+      let node;
+      while ((node = div.firstChild)) {
+        frag.appendChild(node);
+      }
+      
+      range.insertNode(frag);
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      
+      // التركيز على العنصر المضاف إذا كان قابل للتحرير
+      const editableElements = frag.querySelectorAll('[contenteditable="true"]');
+      if (editableElements.length > 0) {
+        const lastEditable = editableElements[editableElements.length - 1];
+        lastEditable.focus();
+      }
+    }
+
+    // تنسيق النص
+    function formatText(command, value = null) {
+      document.execCommand(command, false, value);
+      document.getElementById('editor').focus();
+    }
+
+    // تغيير لون النص
+    function changeTextColor(color) {
+      formatText('foreColor', color);
+    }
+
+    // إدراج صورة
+    async function insertImage(input) {
+      const file = input.files[0];
+      if (!file) return;
+      
+      const mediaId = generateId();
+      await saveMediaFile(mediaId, file);
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = document.createElement('img');
+        img.className = 'content-image';
+        img.src = event.target.result;
+        img.setAttribute('data-media-id', mediaId);
+        img.onclick = showFullscreenImage;
+        
+        insertAtCursor(img.outerHTML);
+      };
+      reader.readAsDataURL(file);
+      input.value = '';
+    }
+
+    // عرض الصورة بحجم كامل
+    function showFullscreenImage(event) {
+      const imgSrc = event.target.src;
+      
+      const overlay = document.createElement('div');
+      overlay.className = 'image-fullscreen';
+      overlay.innerHTML = `
+        <img src="${imgSrc}">
+        <button class="close-fullscreen" onclick="this.parentElement.remove()">✕</button>
+      `;
+      
+      document.body.appendChild(overlay);
+    }
+
+    // إدراج ملف صوتي
+    async function insertAudio(input) {
+      const file = input.files[0];
+      if (!file) return;
+      
+      const mediaId = generateId();
+      await saveMediaFile(mediaId, file);
+      
+      const audioContainer = document.createElement('div');
+      audioContainer.className = 'audio-player';
+      
+      const audioId = `audio-${mediaId}`;
+      audioContainer.innerHTML = `
+        <button class="audio-delete" onclick="deleteAudioElement(this.parentElement)">✕</button>
+        <div class="audio-controls">
+          <button class="audio-btn" onclick="skipAudio('${audioId}', -10)">-10</button>
+          <button class="audio-btn play-pause-btn" onclick="togglePlayPause('${audioId}')">▶</button>
+          <button class="audio-btn" onclick="skipAudio('${audioId}', 10)">+10</button>
+        </div>
+        <div class="progress-container" onclick="seekAudio(event, '${audioId}')">
+          <div class="progress-bar" id="progress-${audioId}"></div>
+        </div>
+        <div class="time-display">
+          <span id="current-time-${audioId}">0:00</span>
+          <span id="duration-${audioId}">0:00</span>
+        </div>
+        <audio id="${audioId}" data-media-id="${mediaId}" ontimeupdate="updateAudioProgress('${audioId}')"></audio>
+      `;
+      
+      document.getElementById('editor').appendChild(audioContainer);
+      
+      const audioElement = document.getElementById(audioId);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        audioElement.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+      
+      input.value = '';
+    }
+
+    // التحكم في الملفات الصوتية
+    function togglePlayPause(audioId) {
+      const audio = document.getElementById(audioId);
+      const btn = document.querySelector(`#${audioId}`).parentElement.querySelector('.play-pause-btn');
+      
+      if (audio.paused) {
+        audio.play();
+        btn.innerHTML = '❚❚';
+      } else {
+        audio.pause();
+        btn.innerHTML = '▶';
+      }
+    }
+
+    function skipAudio(audioId, seconds) {
+      const audio = document.getElementById(audioId);
+      audio.currentTime += seconds;
+    }
+
+    function seekAudio(event, audioId) {
+      const audio = document.getElementById(audioId);
+      const progressContainer = event.currentTarget;
+      const rect = progressContainer.getBoundingClientRect();
+      const percent = (event.clientX - rect.left) / rect.width;
+      audio.currentTime = percent * audio.duration;
+    }
+
+    function updateAudioProgress(audioId) {
+      const audio = document.getElementById(audioId);
+      const progress = (audio.currentTime / audio.duration) * 100;
+      document.getElementById(`progress-${audioId}`).style.width = `${progress}%`;
+      
+      document.getElementById(`current-time-${audioId}`).textContent = formatTime(audio.currentTime);
+      document.getElementById(`duration-${audioId}`).textContent = formatTime(audio.duration);
+    }
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    function deleteAudioElement(element) {
+      if (confirm('هل تريد حذف هذا الملف الصوتي؟')) {
+        element.remove();
+      }
+    }
+
+    // إعداد أحداث المحرر
+    function setupEditorEvents() {
+      const editor = document.getElementById('editor');
+      
+      editor.addEventListener('click', (e) => {
+        if (e.target === editor) {
+          const paragraph = document.createElement('div');
+          paragraph.className = 'editable';
+          paragraph.contentEditable = 'true';
+          editor.appendChild(paragraph);
+          paragraph.focus();
+        }
+      });
+      
+      // حفظ تلقائي كل 5 ثواني
+      setInterval(saveCurrentLesson, 5000);
+    }
+
+    // تهيئة التطبيق عند التحميل
+    window.addEventListener('DOMContentLoaded', async () => {
+      await initDB();
+      await loadData();
+      showPage('foldersPage');
+    });
+  </script>
+</body>
+</html>
