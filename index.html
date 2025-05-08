@@ -1,147 +1,44 @@
-<!DOCTYPE html>
-<html lang="ar">
+<!DOCTYPE html><html lang="ar">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>كشكولي</title>
   <style>
-    body {
-      font-family: 'Cairo', sans-serif;
-      margin: 0; padding: 0;
-      background-color: #f4f9f9;
-      color: #333;
-      direction: rtl;
-      height: 100vh;
-      overflow: hidden;
-    }
-    /* صفحات التنقل */
-    #foldersPage, #lessonsPage {
-      padding: 1rem;
-      height: calc(100vh - 0);
-      overflow-y: auto;
-    }
-    .folder, .lesson {
-      background-color: #fff;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 0.75rem 1rem;
-      margin: 0.5rem 0;
-      position: relative;
-      cursor: pointer;
-    }
-    .folder .actions, .lesson .actions {
-      position: absolute;
-      left: 10px; top: 50%;
-      transform: translateY(-50%);
-    }
-    .actions button {
-      background: none; border: none;
-      font-size: 1rem; cursor: pointer;
-      margin-right: 5px;
-    }
-    button {
-      background-color: #4db6ac;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 5px;
-      cursor: pointer;
-      margin: 0.25rem;
-    }
-    .hidden { display: none; }
-    /* محرر الدرس */
-    #editorPage {
-      display: none;
-      position: relative;
-      height: 100vh;
-      background-color: #f4f9f9;
-    }
-    /* شريط الأدوات */
-    #editorToolbar {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      background: #4db6ac;
-      display: flex; gap: 0.5rem;
-      padding: 0.5rem; z-index: 100;
-    }
-    #editorToolbar button,
-    #editorToolbar input[type=color],
-    #editorToolbar input[type=text] {
-      background: white; color: #333;
-      border: none; padding: 0.5rem;
-      border-radius: 4px; cursor: pointer;
-    }
-    /* منطقة الكتابة */
-    #editor {
-      position: absolute;
-      top: 50px; bottom: 0;
-      left: 0; right: 0;
-      padding: 1rem;
-      overflow-y: auto;
-      background-color: white;
-    }
-    .title-box {
-      background-color: #dcedc8;
-      border-left: 5px solid #8bc34a;
-      padding: 0.5rem; margin: 0.5rem 0;
-      font-weight: bold;
-    }
-    .question-box {
-      background-color: #fff3cd;
-      border-right: 5px solid #ffc107;
-      padding: 0.5rem; margin: 1rem 0 0.5rem;
-      font-weight: bold;
-    }
-    .answer-box {
-      background-color: #e3f2fd;
-      border-right: 5px solid #2196f3;
-      padding: 0.5rem; margin: 0 0 1rem;
-    }
-    .editable-paragraph {
-      margin: 10px 0;
-      min-height: 20px;
-      outline: none;
-    }
-    mark { background-color: yellow; }
-    .fullscreen-overlay {
-      position: fixed; top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.8);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 9999;
-    }
-    .fullscreen-overlay img {
-      max-width: 90%; max-height: 90%;
-    }
-    .close-button {
-      position: absolute; top: 10px; right: 20px;
-      background-color: #f44336; color: white;
-      border: none; padding: 0.5rem 1rem;
-      border-radius: 5px; cursor: pointer;
-    }
+    body { font-family: 'Cairo', sans-serif; margin:0; padding:0; background:#f4f9f9; direction:rtl; height:100vh; overflow:hidden; }
+    #foldersPage,#lessonsPage { padding:1rem; height:calc(100vh - 0); overflow-y:auto; }
+    .folder,.lesson { background:#fff; border:1px solid #ddd; border-radius:8px; padding:.75rem 1rem; margin:.5rem 0; position:relative; cursor:pointer; }
+    .actions { position:absolute; left:10px; top:50%; transform:translateY(-50%); }
+    .actions button { background:none; border:none; font-size:1rem; cursor:pointer; margin-right:5px; }
+    button { background:#4db6ac; color:#fff; border:none; padding:.5rem 1rem; border-radius:5px; cursor:pointer; margin:.25rem; }
+    .hidden{display:none;}
+    /* Editor */
+    #editorPage{display:none;position:relative;height:100vh;background:#f4f9f9;}
+    #editorToolbar{position:fixed;top:0;left:0;right:0;background:#4db6ac;display:flex;gap:.5rem;padding:.5rem;z-index:100;}
+    #editorToolbar button,#editorToolbar input{background:#fff;color:#333;border:none;padding:.5rem;border-radius:4px;cursor:pointer;}
+    #editor{position:absolute;top:50px;bottom:0;left:0;right:0;padding:1rem;overflow-y:auto;background:#fff;}
+    .title-box{background:#dcedc8;border-left:5px solid #8bc34a;padding:.5rem;margin:.5rem 0;font-weight:bold;}
+    .question-box{background:#fff3cd;border-right:5px solid #ffc107;padding:.5rem;margin:1rem 0 .5rem;font-weight:bold;}
+    .answer-box{background:#e3f2fd;border-right:5px solid #2196f3;padding:.5rem;margin:0 0 1rem;}
+    .editable-paragraph{margin:10px 0;min-height:20px;outline:none;}
+    mark{background:yellow;}
+    .fullscreen-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:9999;}
+    .fullscreen-overlay img{max-width:90%;max-height:90%;}
+    .close-button{position:absolute;top:10px;right:20px;background:#f44336;color:#fff;border:none;padding:.5rem 1rem;border-radius:5px;cursor:pointer;}
   </style>
 </head>
 <body>
-
-  <!-- صفحة المواد -->
   <section id="foldersPage">
     <h2>موادك</h2>
     <div id="foldersList"></div>
     <button onclick="addFolder()">+ مادة جديدة</button>
-  </section>
-
-  <!-- صفحة الدروس -->
-  <section id="lessonsPage" class="hidden">
-    <button onclick="backToFolders()">◀︎ المواد</button>
+  </section>  <section id="lessonsPage" class="hidden">
+    <button onclick="showPage('foldersPage')">◀︎ المواد</button>
     <h2 id="currentFolderTitle"></h2>
     <div id="lessonsList"></div>
     <button onclick="addLesson()">+ درس جديد</button>
-  </section>
-
-  <!-- صفحة تحرير الدرس -->
-  <section id="editorPage">
+  </section>  <section id="editorPage">
     <div id="editorToolbar">
-      <button onclick="backToLessons()">◀︎ الدروس</button>
+      <button onclick="showPage('lessonsPage')">◀︎ الدروس</button>
       <button onclick="insertAtCursor('<div class=\\'title-box\\' contenteditable=\\'true\\'>عنوان جديد</div><div><br></div>')">+ عنوان</button>
       <button onclick="insertAtCursor('<div class=\\'question-box\\' contenteditable=\\'true\\'>س: اكتب في ...</div><div><br></div>')">+ سؤال</button>
       <button onclick="insertAtCursor('<div class=\\'answer-box\\' contenteditable=\\'true\\'>الإجابة:</div><div><br></div>')">+ إجابة</button>
@@ -150,151 +47,79 @@
       <input type="text" id="searchBox" placeholder="بحث..." oninput="highlightText(this.value)">
     </div>
     <div id="editor"></div>
-  </section>
+  </section>  <script>
+    let folders = JSON.parse(localStorage.getItem('folders'))||[];
+    let currentFolder=null, currentLesson=null, currentColor='#000';
 
-  <script>
-    // البيانات
-    let folders = JSON.parse(localStorage.getItem("folders")) || [];
-    let currentFolder = null, currentLesson = null;
-    let currentColor = "#000000";
+    function saveData(){localStorage.setItem('folders',JSON.stringify(folders));}
+    function showPage(id){['foldersPage','lessonsPage','editorPage'].forEach(p=>document.getElementById(p).classList.toggle('hidden',p!==id));}
 
-    function saveData() {
-      localStorage.setItem("folders", JSON.stringify(folders));
-    }
-
-    function showPage(id) {
-      document.getElementById("foldersPage").classList.toggle("hidden", id !== "foldersPage");
-      document.getElementById("lessonsPage").classList.toggle("hidden", id !== "lessonsPage");
-      document.getElementById("editorPage").classList.toggle("hidden", id !== "editorPage");
-    }
-
-    // مجلدات
-    function addFolder() {
-      const name = prompt("اسم المادة:");
-      if (!name) return;
-      folders.push({ name, lessons: [] });
-      saveData(); renderFolders();
-    }
-    function editFolder(i) {
-      const newName = prompt("اسم جديد للمادة:", folders[i].name);
-      if (newName) { folders[i].name = newName; saveData(); renderFolders(); }
-    }
-    function deleteFolder(i) {
-      if (confirm("هل تريد حذف هذه المادة؟")) {
-        folders.splice(i,1); saveData(); renderFolders();
-      }
-    }
-    function renderFolders() {
-      const list = document.getElementById("foldersList");
-      list.innerHTML = "";
-      folders.forEach((f,i) => {
-        const d = document.createElement("div");
-        d.className = "folder";
-        d.innerHTML = `<span onclick="openFolder(${i})">${f.name}</span>
-          <div class="actions">
+    function renderFolders(){
+      const list=document.getElementById('foldersList');list.innerHTML='';
+      folders.forEach((f,i)=>{
+        const d=document.createElement('div');d.className='folder';
+        d.innerHTML=`<span onclick="openFolder(${i})">${f.name}</span>
+          <div class='actions'>
             <button onclick="editFolder(${i})">✏️</button>
             <button onclick="deleteFolder(${i})">🗑️</button>
           </div>`;
         list.appendChild(d);
       });
     }
-    function openFolder(i) {
-      currentFolder = folders[i];
-      document.getElementById("currentFolderTitle").textContent = currentFolder.name;
-      renderLessons(); showPage("lessonsPage");
-    }
-    function backToFolders(){ showPage("foldersPage"); }
+    function addFolder(){const n=prompt('اسم المادة:');if(n){folders.push({name:n,lessons:[]});saveData();renderFolders();}}
+    function editFolder(i){const n=prompt('اسم جديد:',folders[i].name);if(n){folders[i].name=n;saveData();renderFolders();}}
+    function deleteFolder(i){if(confirm('حذف المادة؟')){folders.splice(i,1);saveData();renderFolders();}}
+    function openFolder(i){currentFolder=folders[i];document.getElementById('currentFolderTitle').textContent=currentFolder.name;renderLessons();showPage('lessonsPage');}
 
-    // دروس
-    function addLesson() {
-      const name = prompt("اسم الدرس:");
-      if (!name) return;
-      currentFolder.lessons.push({ name, content: "" });
-      saveData(); renderLessons();
-    }
-    function editLesson(i) {
-      const newName = prompt("اسم جديد للدرس:", currentFolder.lessons[i].name);
-      if (newName) { currentFolder.lessons[i].name = newName; saveData(); renderLessons();}
-    }
-    function deleteLesson(i) {
-      if (confirm("هل تريد حذف هذا الدرس؟")) {
-        currentFolder.lessons.splice(i,1); saveData(); renderLessons();
-      }
-    }
-    function renderLessons() {
-      const list = document.getElementById("lessonsList");
-      list.innerHTML = "";
+    function renderLessons(){
+      const list=document.getElementById('lessonsList');list.innerHTML='';
       currentFolder.lessons.forEach((ls,i)=>{
-        const d = document.createElement("div");
-        d.className = "lesson";
-        d.innerHTML = `<span onclick="openLesson(${i})">${ls.name}</span>
-          <div class="actions">
+        const d=document.createElement('div');d.className='lesson';
+        d.innerHTML=`<span onclick="openLesson(${i})">${ls.name}</span>
+          <div class='actions'>
             <button onclick="editLesson(${i})">✏️</button>
             <button onclick="deleteLesson(${i})">🗑️</button>
           </div>`;
         list.appendChild(d);
       });
     }
-    function openLesson(i) {
-      currentLesson = currentFolder.lessons[i];
-      document.getElementById("editor").innerHTML = currentLesson.content || "";
-      showPage("editorPage");
-    }
-    function backToLessons() {
-      if (currentLesson) {
-        currentLesson.content = document.getElementById("editor").innerHTML;
-        saveData();
-      }
-      showPage("lessonsPage");
+    function addLesson(){const n=prompt('اسم الدرس:');if(n){currentFolder.lessons.push({name:n,content:''});saveData();renderLessons();}}
+    function editLesson(i){const n=prompt('اسم جديد:',currentFolder.lessons[i].name);if(n){currentFolder.lessons[i].name=n;saveData();renderLessons();}}
+    function deleteLesson(i){if(confirm('حذف الدرس؟')){currentFolder.lessons.splice(i,1);saveData();renderLessons();}}
+    function openLesson(i){currentLesson=currentFolder.lessons[i];document.getElementById('editor').innerHTML=currentLesson.content;showPage('editorPage');}
+    function backToLessons(){if(currentLesson){currentLesson.content=document.getElementById('editor').innerHTML;saveData();}showPage('lessonsPage');}
+
+    function insertAtCursor(html){
+      const sel=window.getSelection();if(!sel.rangeCount)return;const r=sel.getRangeAt(0);
+      const d=document.createElement('div');d.innerHTML=html;
+      const f=document.createDocumentFragment();let n;
+      while(n=d.firstChild)f.appendChild(n);
+      r.deleteContents();r.insertNode(f);
     }
 
-    // إدراج HTML في مكان المؤشر
-    function insertAtCursor(html) {
-      const sel = window.getSelection();
-      if (!sel.rangeCount) return;
-      const range = sel.getRangeAt(0);
-      const el = document.createElement("div"); el.innerHTML = html;
-      const frag = document.createDocumentFragment();
-      let node;
-      while (node = el.firstChild) frag.appendChild(node);
-      range.deleteContents(); range.insertNode(frag);
-    }
-
-    // إنشاء فقرات جديدة عند النقر
-    const editor = document.getElementById("editor");
-    editor.addEventListener("click", e => {
-      if (e.target === editor) {
-        const p = document.createElement("div");
-        p.className = "editable-paragraph";
-        p.contentEditable = true;
-        p.style.color = currentColor;
-        p.innerHTML = "";
-        editor.appendChild(p);
-        p.focus();
+    // Click editor to add paragraph
+    const editor=document.getElementById('editor');
+    editor.addEventListener('click',e=>{
+      if(e.target===editor){
+        const p=document.createElement('div');
+        p.className='editable-paragraph';p.contentEditable=true;
+        p.style.color=currentColor;editor.appendChild(p);p.focus();
       }
     });
 
-    // تغيير اللون للتحديد والكتابة
-    document.getElementById("colorPicker")
-      .addEventListener("input", e => {
-        currentColor = e.target.value;
-        document.execCommand("styleWithCSS",false,true);
-        document.execCommand("foreColor",false,currentColor);
-      });
+    document.getElementById('colorPicker').addEventListener('input',e=>{
+      currentColor=e.target.value;
+      document.execCommand('styleWithCSS',false,true);
+      document.execCommand('foreColor',false,currentColor);
+    });
 
-    // البحث والتظليل
-    function highlightText(term) {
-      const raw = editor.innerHTML.replace(/<mark>|<\/mark>/g,"");
-      if (term.trim() === "") {
-        editor.innerHTML = raw;
-      } else {
-        const regex = new RegExp(term,"gi");
-        editor.innerHTML = raw.replace(regex,"<mark>$&</mark>");
-      }
+    function highlightText(term){
+      let raw=editor.innerHTML.replace(/<mark>|<\/mark>/g,'');
+      if(!term.trim())editor.innerHTML=raw;
+      else editor.innerHTML=raw.replace(new RegExp(term,'gi'),m=>`<mark>${m}</mark>`);
     }
 
-    renderFolders();
-    showPage("foldersPage");
-  </script>
-</body>
+    renderFolders();showPage('foldersPage');
+  </script></body>
 </html>
+```
