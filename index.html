@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>كشكولي</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet>
   <style>
     :root {
       --primary-color: #2a9d8f;
@@ -125,12 +125,16 @@
       color: white;
       border: none;
       border-radius: var(--border-radius);
-      padding: 0.75rem;
-      font-size: 1rem;
-      font-weight: 500;
-      width: 100%;
-      margin-top: 0.5rem;
+      padding: 1rem;
+      font-size: 1.1rem;
+      width: calc(100% - 2rem);
+      margin: 0.5rem auto;
       box-shadow: var(--box-shadow);
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      right: 1rem;
+      z-index: 100;
     }
 
     .back-btn {
@@ -315,11 +319,6 @@
       z-index: 1000;
     }
 
-    .image-fullscreen img {
-      max-width: 90%;
-      max-height: 90%;
-    }
-
     .close-fullscreen {
       position: absolute;
       top: 1rem;
@@ -333,7 +332,48 @@
       font-size: 1rem;
     }
 
-    /* التكيف مع لوحة المفاتيح */
+    /* وضع القراءة */
+    .read-mode-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: white;
+      z-index: 2000;
+      overflow-y: auto;
+      padding: 2rem;
+    }
+
+    .read-mode-content {
+      max-width: 800px;
+      margin: 0 auto;
+      font-size: 1.2rem;
+      line-height: 1.8;
+    }
+
+    .read-mode-controls {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      display: flex;
+      gap: 1rem;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      z-index: 2001;
+    }
+
+    .read-mode-controls button {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
     @media (max-height: 500px) {
       .editor-toolbar {
         position: static;
@@ -356,6 +396,10 @@
 
     <!-- صفحة الدروس -->
     <section id="lessonsPage">
+      <div class="editor-header">
+        <button class="back-btn" onclick="showPage('foldersPage')">←</button>
+        <div class="editor-title">الدروس</div>
+      </div>
       <div class="list-container" id="lessonsList"></div>
       <button class="add-btn" onclick="addLesson()">+ إضافة درس جديد</button>
     </section>
@@ -378,10 +422,21 @@
         <button class="toolbar-btn" onclick="document.getElementById('imageInput').click()">صورة</button>
         <input type="file" id="audioInput" accept="audio/*" class="toolbar-btn" style="display: none;" onchange="insertAudio(this)">
         <button class="toolbar-btn" onclick="document.getElementById('audioInput').click()">صوت</button>
+        <button class="toolbar-btn" onclick="toggleReadMode()">📖 وضع القراءة</button>
       </div>
       <div class="editor-content" id="editor" contenteditable="true"></div>
     </section>
   </main>
+
+  <!-- وضع القراءة -->
+  <div id="readModeContainer" class="read-mode-overlay" style="display: none;">
+    <div class="read-mode-controls">
+      <button onclick="adjustFontSize(1)">+ تكبير</button>
+      <button onclick="adjustFontSize(-1)">- تصغير</button>
+      <button onclick="toggleReadMode()">✕ إغلاق</button>
+    </div>
+    <div class="read-mode-content" id="readModeContent"></div>
+  </div>
 
   <script>
     // إعداد قاعدة البيانات
@@ -449,11 +504,9 @@
         const transaction = db.transaction(['folders'], 'readwrite');
         const store = transaction.objectStore('folders');
         
-        // حذف جميع السجلات القديمة
         const clearRequest = store.clear();
         
         clearRequest.onsuccess = () => {
-          // إضافة السجلات الجديدة
           folders.forEach(folder => {
             store.put(folder);
           });
@@ -467,7 +520,7 @@
       });
     }
 
-    // حفظ ملف وسائط في قاعدة البيانات
+    // حفظ ملف وسائط
     async function saveMediaFile(id, file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -481,7 +534,7 @@
       });
     }
 
-    // جلب ملف وسائط من قاعدة البيانات
+    // جلب ملف وسائط
     async function getMediaFile(id) {
       return new Promise((resolve, reject) => {
         const transaction = db.transaction(['media'], 'readonly');
@@ -579,7 +632,11 @@
       lessonsList.innerHTML = '';
       
       if (!lessons || lessons.length === 0) {
-        lessonsList.innerHTML = '<p style="text-align: center; color: #666;">لا توجد دروس حتى الآن</p>';
+        lessonsList.innerHTML = `
+          <div style="text-align: center; margin-top: 2rem; color: #666">
+            لا توجد دروس حتى الآن، اضغط على الزر أدناه لإنشاء درس جديد
+          </div>
+        `;
         return;
       }
       
@@ -629,14 +686,13 @@
       document.getElementById('lessonTitle').textContent = lesson.name;
       document.getElementById('editor').innerHTML = lesson.content || '<div class="editable">ابدأ الكتابة هنا...</div>';
       
-      // تحميل وسائط الدرس
       await loadLessonMedia();
       
       showPage('editorPage');
       setupEditorEvents();
     }
 
-    // تحميل وسائط الدرس
+    // تحميل الوسائط
     async function loadLessonMedia() {
       const mediaElements = document.querySelectorAll('[data-media-id]');
       for (const element of mediaElements) {
@@ -683,13 +739,13 @@
       renderLessons(folder.lessons);
     }
 
-    // العودة إلى صفحة الدروس
+    // العودة للدروس
     async function backToLessons() {
       await saveCurrentLesson();
       showPage('lessonsPage');
     }
 
-    // حفظ الدرس الحالي
+    // حفظ الدرس
     async function saveCurrentLesson() {
       if (!currentFolderId || !currentLessonId) return;
       
@@ -705,20 +761,22 @@
       await saveData();
     }
 
-    // إظهار الصفحة المحددة
+    // إظهار الصفحات
     function showPage(pageId) {
       document.querySelectorAll('section').forEach(section => {
         section.classList.remove('active');
+        section.style.display = 'none';
       });
       document.getElementById(pageId).classList.add('active');
+      document.getElementById(pageId).style.display = 'flex';
     }
 
-    // توليد معرف فريد
+    // توليد ID
     function generateId() {
       return Date.now().toString(36) + Math.random().toString(36).substring(2);
     }
 
-    // إدراج نص في مكان المؤشر
+    // إدراج محتوى
     function insertAtCursor(html) {
       const selection = window.getSelection();
       if (!selection.rangeCount) return;
@@ -740,7 +798,6 @@
       selection.removeAllRanges();
       selection.addRange(range);
       
-      // التركيز على العنصر المضاف إذا كان قابل للتحرير
       const editableElements = frag.querySelectorAll('[contenteditable="true"]');
       if (editableElements.length > 0) {
         const lastEditable = editableElements[editableElements.length - 1];
@@ -754,7 +811,7 @@
       document.getElementById('editor').focus();
     }
 
-    // تغيير لون النص
+    // تغيير اللون
     function changeTextColor(color) {
       formatText('foreColor', color);
     }
@@ -781,7 +838,7 @@
       input.value = '';
     }
 
-    // عرض الصورة بحجم كامل
+    // عرض الصورة كاملة
     function showFullscreenImage(event) {
       const imgSrc = event.target.src;
       
@@ -795,7 +852,7 @@
       document.body.appendChild(overlay);
     }
 
-    // إدراج ملف صوتي
+    // إدراج صوت
     async function insertAudio(input) {
       const file = input.files[0];
       if (!file) return;
@@ -836,7 +893,7 @@
       input.value = '';
     }
 
-    // التحكم في الملفات الصوتية
+    // التحكم بالصوت
     function togglePlayPause(audioId) {
       const audio = document.getElementById(audioId);
       const btn = document.querySelector(`#${audioId}`).parentElement.querySelector('.play-pause-btn');
@@ -884,7 +941,7 @@
       }
     }
 
-    // إعداد أحداث المحرر
+    // أحداث المحرر
     function setupEditorEvents() {
       const editor = document.getElementById('editor');
       
@@ -898,263 +955,54 @@
         }
       });
       
-      // حفظ تلقائي كل 5 ثواني
       setInterval(saveCurrentLesson, 5000);
     }
 
-    // تهيئة التطبيق عند التحميل
+    // تفعيل الوضع القرائي
+    function toggleReadMode() {
+      const container = document.getElementById('readModeContainer');
+      const isVisible = container.style.display === 'block';
+      
+      if (!isVisible) {
+        const editorContent = document.getElementById('editor').cloneNode(true);
+        cleanContentForReadMode(editorContent);
+        document.getElementById('readModeContent').innerHTML = '';
+        document.getElementById('readModeContent').appendChild(editorContent);
+        
+        document.getElementById('readModeContent').querySelectorAll('[contenteditable]').forEach(el => {
+          el.contentEditable = false;
+        });
+        
+        container.style.display = 'block';
+      } else {
+        container.style.display = 'none';
+      }
+    }
+
+    function cleanContentForReadMode(content) {
+      content.querySelectorAll('.audio-delete, .action-btn').forEach(el => el.remove());
+      
+      content.querySelectorAll('audio').forEach(audio => {
+        audio.controls = true;
+      });
+      
+      content.querySelectorAll('img').forEach(img => {
+        img.onclick = showFullscreenImage;
+      });
+    }
+
+    function adjustFontSize(change) {
+      const content = document.getElementById('readModeContent');
+      const currentSize = parseInt(window.getComputedStyle(content).fontSize) || 16;
+      content.style.fontSize = (currentSize + change) + 'px';
+    }
+
+    // تهيئة التطبيق
     window.addEventListener('DOMContentLoaded', async () => {
       await initDB();
       await loadData();
       showPage('foldersPage');
     });
-  </script>
-</body>
-</html>
-
-
-
-
-
-
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>كشكولي</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --primary-color: #2a9d8f;
-      --secondary-color: #264653;
-      --accent-color: #e9c46a;
-      --light-bg: #f8f9fa;
-      --dark-text: #212529;
-      --light-text: #f8f9fa;
-      --border-radius: 8px;
-      --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Tajawal', sans-serif;
-      background: var(--light-bg);
-      color: var(--dark-text);
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    header {
-      background: var(--primary-color);
-      color: white;
-      padding: 0.75rem;
-      text-align: center;
-      font-size: 1.25rem;
-      font-weight: 700;
-      box-shadow: var(--box-shadow);
-      z-index: 100;
-      flex-shrink: 0;
-    }
-
-    main {
-      flex: 1;
-      display: flex;
-      overflow: hidden;
-      position: relative;
-    }
-
-    section {
-      flex: 1;
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
-      padding: 0;
-    }
-
-    section.active {
-      display: flex;
-    }
-
-    /* صفحة المواد */
-    #foldersPage {
-      padding: 1rem;
-    }
-
-    .page-title {
-      font-size: 1.2rem;
-      margin-bottom: 1rem;
-      color: var(--secondary-color);
-    }
-
-    .list-container {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0.5rem 0;
-    }
-
-    .list-item {
-      background: white;
-      border-radius: var(--border-radius);
-      padding: 0.75rem 1rem;
-      margin-bottom: 0.75rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: var(--box-shadow);
-      transition: transform 0.2s;
-    }
-
-    .list-item:active {
-      transform: scale(0.98);
-    }
-
-    .item-title {
-      flex: 1;
-      font-weight: 500;
-    }
-
-    .item-actions {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .action-btn {
-      background: none;
-      border: none;
-      font-size: 1rem;
-      color: var(--secondary-color);
-      opacity: 0.7;
-      padding: 0.25rem;
-    }
-
-    .action-btn:hover {
-      opacity: 1;
-    }
-
-    .add-btn {
-      background: var(--primary-color);
-      color: white;
-      border: none;
-      border-radius: var(--border-radius);
-      padding: 1rem;
-      font-size: 1.1rem;
-      width: calc(100% - 2rem);
-      margin: 0.5rem auto;
-      box-shadow: var(--box-shadow);
-      position: fixed;
-      bottom: 1rem;
-      left: 1rem;
-      right: 1rem;
-      z-index: 100;
-    }
-
-    .back-btn {
-      background: none;
-      border: none;
-      font-size: 1.2rem;
-      padding: 0.5rem;
-      color: var(--secondary-color);
-      align-self: flex-start;
-    }
-
-    /* صفحة الدروس */
-    #lessonsPage {
-      padding-bottom: 5rem;
-    }
-
-    #lessonsPage .list-container {
-      padding-bottom: 5rem;
-    }
-
-    #lessonsPage .add-btn {
-      bottom: 1rem;
-    }
-
-    /* بقية الأنماط كما هي ... */
-
-  </style>
-</head>
-<body>
-  <header>كشكولي</header>
-  <main>
-    <!-- صفحة المواد -->
-    <section id="foldersPage" class="active">
-      <h2 class="page-title">موادك الدراسية</h2>
-      <div class="list-container" id="foldersList"></div>
-      <button class="add-btn" onclick="addFolder()">+ إضافة مادة جديدة</button>
-    </section>
-
-    <!-- صفحة الدروس -->
-    <section id="lessonsPage">
-      <div class="editor-header">
-        <button class="back-btn" onclick="showPage('foldersPage')">←</button>
-        <div class="editor-title">الدروس</div>
-      </div>
-      <div class="list-container" id="lessonsList"></div>
-      <button class="add-btn" onclick="addLesson()">+ إضافة درس جديد</button>
-    </section>
-
-    <!-- صفحة المحرر -->
-    <section id="editorPage">
-      <div class="editor-header">
-        <button class="back-btn" onclick="backToLessons()">←</button>
-        <div class="editor-title" id="lessonTitle"></div>
-      </div>
-      <div class="editor-toolbar">
-        <!-- ... بقية العناصر كما هي ... -->
-      </div>
-      <div class="editor-content" id="editor" contenteditable="true"></div>
-    </section>
-  </main>
-
-  <script>
-    // ... جميع الدوال JavaScript السابقة كما هي ...
-
-    function renderLessons(lessons) {
-      const lessonsList = document.getElementById('lessonsList');
-      lessonsList.innerHTML = '';
-      
-      if (!lessons || lessons.length === 0) {
-        lessonsList.innerHTML = `
-          <div style="text-align: center; margin-top: 2rem; color: #666">
-            لا توجد دروس حتى الآن، اضغط على الزر أدناه لإنشاء درس جديد
-          </div>
-        `;
-        return;
-      }
-      
-      lessons.forEach(lesson => {
-        const lessonItem = document.createElement('div');
-        lessonItem.className = 'list-item';
-        lessonItem.innerHTML = `
-          <div class="item-title" onclick="openLesson('${lesson.id}')">${lesson.name}</div>
-          <div class="item-actions">
-            <button class="action-btn" onclick="editLesson('${lesson.id}', event)">✏️</button>
-            <button class="action-btn" onclick="deleteLesson('${lesson.id}', event)">🗑️</button>
-          </div>
-        `;
-        lessonsList.appendChild(lessonItem);
-      });
-    }
-
-    function showPage(pageId) {
-      document.querySelectorAll('section').forEach(section => {
-        section.classList.remove('active');
-        section.style.display = 'none';
-      });
-      document.getElementById(pageId).classList.add('active');
-      document.getElementById(pageId).style.display = 'flex';
-    }
-
-    // ... بقية الدوال كما هي ...
   </script>
 </body>
 </html>
