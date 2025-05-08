@@ -95,6 +95,28 @@ button {
   background-color: white;
 }
 
+mark {
+  background-color: yellow;
+}
+
+.fullscreen-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.fullscreen-overlay img {
+  max-width: 90%;
+  max-height: 90%;
+}
+
   </style>
 </head>
 <body><section id="foldersPage">
@@ -109,13 +131,16 @@ button {
 </section><section id="editorPage" class="hidden">
   <div id="editorToolbar">
     <button onclick="backToLessons()">◀︎ الدروس</button>
-    <button onclick="insertAtCursor('<div class=\'title-box\' contenteditable=\'true\'>عنوان جديد</div><div><br></div>')">+ عنوان</button>
-    <button onclick="insertAtCursor('<div class=\'question-box\' contenteditable=\'true\'>س: اكتب في ...</div><div><br></div>')">+ سؤال</button>
-    <button onclick="insertAtCursor('<div class=\'answer-box\' contenteditable=\'true\'>الإجابة:</div><div><br></div>')">+ إجابة</button>
+    <button onclick="insertAtCursor('<div class=\'title-box\'>عنوان جديد</div><div><br></div>')">+ عنوان</button>
+    <button onclick="insertAtCursor('<div class=\'question-box\'>س: اكتب في ...</div><div><br></div>')">+ سؤال</button>
+    <button onclick="insertAtCursor('<div class=\'answer-box\'>الإجابة:</div><div><br></div>')">+ إجابة</button>
     <button onclick="document.execCommand('bold')">عريض</button>
+    <input type="color" id="colorPicker" title="لون الكتابة">
+    <input type="text" id="searchBox" placeholder="بحث..." oninput="highlightText(this.value)">
   </div>
   <div id="editor" contenteditable="true"></div>
 </section><script>
+  // جلب البيانات من LocalStorage
   let folders = JSON.parse(localStorage.getItem('folders')) || [];
   let currentFolder = null, currentLesson = null;
 
@@ -145,32 +170,6 @@ button {
     currentFolder = folders[index];
     document.getElementById('currentFolderTitle').textContent = currentFolder.name;
     renderLessons();
-    showPage('lessonsPage');
-  }
-
-  function renderLessons() {
-    const list = document.getElementById('lessonsList');
-    list.innerHTML = '';
-    currentFolder.lessons.forEach((lesson, index) => {
-      const div = document.createElement('div');
-      div.className = 'lesson';
-      div.textContent = lesson.name;
-      div.onclick = () => openLesson(index);
-      list.appendChild(div);
-    });
-  }
-
-  function openLesson(index) {
-    currentLesson = currentFolder.lessons[index];
-    document.getElementById('editor').innerHTML = currentLesson.content || '';
-    showPage('editorPage');
-  }
-
-  function backToLessons() {
-    if (currentLesson) {
-      currentLesson.content = document.getElementById('editor').innerHTML;
-      saveData();
-    }
     showPage('lessonsPage');
   }
 
