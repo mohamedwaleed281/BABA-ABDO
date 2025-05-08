@@ -154,6 +154,19 @@
     }
     audio {
       display:block; margin:1rem 0; width:100%; max-width:400px;
+      cursor: move; /* لجعل الصوت قابل للسحب */
+    }
+    .audio-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .delete-audio {
+      background: none;
+      color: #f44336;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
     }
   </style>
 </head>
@@ -398,10 +411,22 @@
         if (!file) return;
         const reader = new FileReader();
         reader.onload = () => {
+          const audioContainer = document.createElement('div');
+          audioContainer.className = 'audio-container';
           const audio = document.createElement('audio');
           audio.controls = true;
           audio.src = reader.result;
-          document.getElementById('editor').appendChild(audio);
+
+          const deleteButton = document.createElement('button');
+          deleteButton.className = 'delete-audio';
+          deleteButton.innerHTML = '🗑️';
+          deleteButton.onclick = () => {
+            audioContainer.remove();
+          };
+
+          audioContainer.appendChild(audio);
+          audioContainer.appendChild(deleteButton);
+          document.getElementById('editor').appendChild(audioContainer);
         };
         reader.readAsDataURL(file);
         e.target.value = '';
@@ -466,6 +491,18 @@
       // بدء التطبيق
       renderFolders();
       showPage('foldersPage');
+
+      // تكبير وتصغير الصفحة
+      let scale = 1;
+      document.addEventListener('wheel', (event) => {
+        if (event.ctrlKey) {
+          event.preventDefault();
+          scale += event.deltaY * -0.001;
+          scale = Math.min(Math.max(0.5, scale), 2); // تحديد نطاق التكبير
+          document.body.style.transform = `scale(${scale})`;
+          document.body.style.transformOrigin = '0 0';
+        }
+      });
     });
   </script>
 </body>
