@@ -1,254 +1,205 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بابا عبده</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            direction: rtl;
-            margin: 0;
-            padding: 0;
-            background-color: #f8f8f8;
-        }
-
-        header {
-            background: #ff6600;
-            color: white;
-            padding: 15px;
-            font-size: 24px;
-        }
-
-        button {
-            padding: 10px 20px;
-            margin: 10px;
-            background: #ff6600;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        button:hover {
-            background: #e65c00;
-        }
-
-        #tablesContainer {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
-        .table {
-            width: 100px;
-            height: 100px;
-            background: white;
-            border: 2px solid #ff6600;
-            margin: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-        footer {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background: #333;
-            color: white;
-            padding: 10px;
-        }
-
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        ul li {
-            background: white;
-            padding: 10px;
-            margin: 5px;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        ul li button {
-            background: red;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>كشكولي</title>
+  <style>
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Cairo', sans-serif;
+      direction: rtl; height: 100vh;
+      overflow: hidden;
+    }
+    /* صفحات التنقل */
+    #foldersPage, #lessonsPage { padding: 1rem; }
+    /* محرر الدرس */
+    #editorPage {
+      display: none;
+      position: relative;
+      height: 100vh;
+      background: #f4f9f9;
+    }
+    /* شريط الأدوات في أعلى المحرر */
+    #editorToolbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: #4db6ac; padding: 0.5rem;
+      display: flex; align-items: center;
+      gap: 0.5rem; z-index: 100;
+    }
+    #editorToolbar button, 
+    #editorToolbar input[type=color] {
+      background: white; color: #333;
+      border: none; padding: 0.5rem;
+      border-radius: 4px; cursor: pointer;
+    }
+    /* المنطقة القابلة للكتابة */
+    #editor {
+      position: absolute;
+      top: 50px; /* ارتفاع الشريط */
+      bottom: 0; left: 0; right: 0;
+      padding: 1rem;
+      overflow-y: auto;
+      background: white;
+    }
+    /* بطاقات العنوان والسؤال والإجابة */
+    .title-box { background: #dcedc8; padding: 0.5rem; margin: 0.5rem 0; }
+    .question-box { background: #fff3cd; padding: 0.5rem; margin: 0.5rem 0; }
+    .answer-box   { background: #e3f2fd; padding: 0.5rem; margin: 0.5rem 0; }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>بابا عبده</h1>
-    </header>
 
-    <main id="main-content">
-        <button onclick="createTables()">إنشاء ترابيزات</button>
-        <button onclick="manageMenu()">إدارة المنيو</button>
-        <div id="tablesContainer"></div>
-    </main>
+  <!-- صفحة المواد -->
+  <section id="foldersPage">
+    <h2>مجلداتك</h2>
+    <div id="foldersList"></div>
+    <button onclick="addFolder()">+ إضافة مادة</button>
+  </section>
 
-    <footer>
-        <p>العبد الفقير إلى الله محمد وليد سعد يرحب بكم في تطبيق بابا عبده</p>
-    </footer>
+  <!-- صفحة الدروس -->
+  <section id="lessonsPage" class="hidden">
+    <button onclick="backToFolders()">◀︎ المواد</button>
+    <h2 id="currentFolderTitle"></h2>
+    <div id="lessonsList"></div>
+    <button onclick="addLesson()">+ إضافة درس</button>
+  </section>
 
-    <script>
-        function loadHomeScreen() {
-            let main = document.getElementById("main-content");
-            main.innerHTML = `
-                <button onclick="createTables()">إنشاء ترابيزات</button>
-                <button onclick="manageMenu()">إدارة المنيو</button>
-                <div id="tablesContainer"></div>
-            `;
-            loadTables();
-        }
+  <!-- صفحة تحرير الدرس -->
+  <section id="editorPage">
+    <!-- شريط الأدوات -->
+    <div id="editorToolbar">
+      <button onclick="backToLessons()">◀︎ الدروس</button>
+      <button onclick="insertAtCursor('<div class=&quot;title-box&quot; contenteditable=&quot;true&quot;>عنوان جديد</div><div><br></div>')">+ عنوان</button>
+      <button onclick="insertAtCursor('<div class=&quot;question-box&quot; contenteditable=&quot;true&quot;>س: ...</div><div><br></div>')">+ سؤال</button>
+      <button onclick="document.execCommand('bold')">عريض</button>
+      <input type="color" id="colorPicker" title="لون الكتابة">
+      <input type="file" id="imageInput" accept="image/*" title="إضافة صورة">
+    </div>
+    <!-- المنطقة القابلة للكتابة -->
+    <div id="editor" contenteditable="true"></div>
+  </section>
 
-        function createTables() {
-            let num = prompt("كم عدد الترابيزات؟");
-            if (!num || isNaN(num) || num <= 0) return;
-            localStorage.setItem("numTables", num);
-            loadTables();
-        }
+  <script>
+    // بيانات
+    let folders = JSON.parse(localStorage.getItem("folders")) || [];
+    let currentFolder = null, currentLesson = null;
 
-        function loadTables() {
-            let num = localStorage.getItem("numTables") || 0;
-            let container = document.getElementById("tablesContainer");
-            container.innerHTML = "";
-            for (let i = 1; i <= num; i++) {
-                let table = document.createElement("div");
-                table.classList.add("table");
-                table.textContent = `طاولة ${i}`;
-                table.onclick = () => openTable(i);
-                container.appendChild(table);
-            }
-        }
+    function saveData() {
+      localStorage.setItem("folders", JSON.stringify(folders));
+    }
+    function show(id) {
+      document.getElementById("foldersPage").classList.toggle("hidden", id!=="foldersPage");
+      document.getElementById("lessonsPage").classList.toggle("hidden", id!=="lessonsPage");
+      document.getElementById("editorPage").classList.toggle("hidden", id!=="editorPage");
+    }
 
-        function openTable(tableNumber) {
-            localStorage.setItem("currentTable", tableNumber);
-            let main = document.getElementById("main-content");
-            main.innerHTML = `
-                <h2>إدارة الطلبات - طاولة ${tableNumber}</h2>
-                <h3>قائمة الطعام</h3>
-                <div id="menu"></div>
-                <h3>الطلبات</h3>
-                <ul id="ordersList"></ul>
-                <button onclick="clearOrders()">حذف الكل</button>
-                <button onclick="loadHomeScreen()">رجوع</button>
-            `;
-            displayMenu();
-            displayOrders();
-        }
+    // مجلدات
+    function addFolder() {
+      const name = prompt("اسم المادة:");
+      if (!name) return;
+      folders.push({name, lessons: []});
+      saveData(); renderFolders();
+    }
+    function renderFolders() {
+      const list = document.getElementById("foldersList");
+      list.innerHTML="";
+      folders.forEach((f,i)=> {
+        const d=document.createElement("div");
+        d.textContent=f.name;
+        d.onclick=()=>openFolder(i);
+        list.appendChild(d);
+      });
+    }
+    function openFolder(i) {
+      currentFolder = folders[i];
+      document.getElementById("currentFolderTitle").textContent = currentFolder.name;
+      renderLessons(); show("lessonsPage");
+    }
+    function backToFolders(){ show("foldersPage"); }
 
-        let menuItems = JSON.parse(localStorage.getItem("menu")) || [
-            { name: "بيتزا", price: 50 },
-            { name: "برجر", price: 40 },
-            { name: "مشروب غازي", price: 10 }
-        ];
+    // دروس
+    function addLesson() {
+      const name = prompt("اسم الدرس:");
+      if (!name) return;
+      currentFolder.lessons.push({name,content:""});
+      saveData(); renderLessons();
+    }
+    function renderLessons() {
+      const list = document.getElementById("lessonsList");
+      list.innerHTML="";
+      currentFolder.lessons.forEach((ls,i)=>{
+        const d=document.createElement("div");
+        d.textContent=ls.name;
+        d.onclick=()=>openLesson(i);
+        list.appendChild(d);
+      });
+    }
+    function openLesson(i) {
+      currentLesson = currentFolder.lessons[i];
+      document.getElementById("editor").innerHTML = currentLesson.content || "";
+      show("editorPage");
+    }
+    function backToLessons() {
+      if (currentLesson) {
+        currentLesson.content = document.getElementById("editor").innerHTML;
+        saveData();
+      }
+      show("lessonsPage");
+    }
 
-        function displayMenu() {
-            let menuDiv = document.getElementById("menu");
-            menuDiv.innerHTML = "";
-            menuItems.forEach(item => {
-                let button = document.createElement("button");
-                button.textContent = `${item.name} - ${item.price} جنيه`;
-                button.onclick = () => addToOrder(item);
-                menuDiv.appendChild(button);
-            });
-        }
+    // إدراج HTML في مكان المؤشر
+    function insertAtCursor(html) {
+      const sel=window.getSelection();
+      if (!sel.rangeCount) return;
+      const range=sel.getRangeAt(0);
+      const el=document.createElement("div"); el.innerHTML=html;
+      const frag=document.createDocumentFragment();
+      let node;
+      while(node=el.firstChild) frag.appendChild(node);
+      range.deleteContents();
+      range.insertNode(frag);
+    }
 
-        function addToOrder(item) {
-            let tableNumber = localStorage.getItem("currentTable");
-            let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
-            orders.push(item);
-            localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));
-            displayOrders();
-        }
+    // أداة الألوان للكتابة الجديدة
+    document.getElementById("colorPicker")
+      .addEventListener("input", e=>{
+        document.execCommand("styleWithCSS",false,true);
+        document.execCommand("foreColor",false,e.target.value);
+      });
 
-        function displayOrders() {
-            let tableNumber = localStorage.getItem("currentTable");
-            let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
-            let list = document.getElementById("ordersList");
-            list.innerHTML = "";
-            orders.forEach((item, index) => {
-                let li = document.createElement("li");
-                li.textContent = `${item.name} - ${item.price} جنيه`;
-                let removeBtn = document.createElement("button");
-                removeBtn.textContent = "❌";
-                removeBtn.onclick = () => removeOrder(index);
-                li.appendChild(removeBtn);
-                list.appendChild(li);
-            });
-        }
+    // رفع صورة
+    document.getElementById("imageInput")
+      .addEventListener("change", e=>{
+        const file=e.target.files[0]; if(!file) return;
+        const reader=new FileReader();
+        reader.onload=()=>{
+          const img=document.createElement("img");
+          img.src=reader.result;
+          img.style.maxWidth="150px";
+          img.oncontextmenu = ()=>false;
+          img.onmousedown = null;
+          // فتح ملء الشاشة على الضغط مطوّل
+          img.addEventListener("mousedown", startLongPress);
+          function startLongPress(evt) {
+            let timeout = setTimeout(()=>{
+              const overlay=document.createElement("div");
+              overlay.className="fullscreen-image";
+              overlay.innerHTML=`<img src="${img.src}" onclick="this.parentElement.remove()">`;
+              document.body.appendChild(overlay);
+            },800);
+            img.onmouseup=()=>clearTimeout(timeout);
+            img.onmouseout=()=>clearTimeout(timeout);
+          }
+          insertAtCursor(img.outerHTML);
+        };
+        reader.readAsDataURL(file);
+      });
 
-        function removeOrder(index) {
-            let tableNumber = localStorage.getItem("currentTable");
-            let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
-            orders.splice(index, 1);
-            localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));
-            displayOrders();
-        }
-
-        function clearOrders() {
-            let tableNumber = localStorage.getItem("currentTable");
-            localStorage.setItem(`orders_${tableNumber}`, JSON.stringify([]));
-            displayOrders();
-        }
-
-        function manageMenu() {
-            let main = document.getElementById("main-content");
-            main.innerHTML = `
-                <h2>إدارة المنيو</h2>
-                <input type="text" id="itemName" placeholder="اسم الصنف">
-                <input type="number" id="itemPrice" placeholder="السعر">
-                <button onclick="addItem()">إضافة</button>
-                <h3>المنيو الحالي</h3>
-                <ul id="menuList"></ul>
-                <button onclick="loadHomeScreen()">رجوع</button>
-            `;
-            displayMenuList();
-        }
-
-        function addItem() {
-            let name = document.getElementById("itemName").value;
-            let price = document.getElementById("itemPrice").value;
-            if (name && price) {
-                menuItems.push({ name, price });
-                localStorage.setItem("menu", JSON.stringify(menuItems));
-                displayMenuList();
-            }
-        }
-
-        function displayMenuList() {
-            let list = document.getElementById("menuList");
-            list.innerHTML = "";
-            menuItems.forEach((item, index) => {
-                let li = document.createElement("li");
-                li.textContent = `${item.name} - ${item.price} جنيه`;
-                let removeBtn = document.createElement("button");
-                removeBtn.textContent = "❌";
-                removeBtn.onclick = () => removeMenuItem(index);
-                li.appendChild(removeBtn);
-                list.appendChild(li);
-            });
-        }
-
-        function removeMenuItem(index) {
-            menuItems.splice(index, 1);
-            localStorage.setItem("menu", JSON.stringify(menuItems));
-            displayMenuList();
-        }
-
-        loadHomeScreen();
-    </script>
+    // بدء
+    renderFolders();
+    show("foldersPage");
+  </script>
 </body>
 </html>
