@@ -5,118 +5,743 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>كشكولي</title>
   <style>
-    body { font-family: 'Cairo', sans-serif; margin:0; padding:0; direction:rtl; background:#f4f9f9; height:100vh; overflow:hidden; }
-    section { display:none; }
-    #foldersPage, #lessonsPage { padding:1rem; height:100vh; overflow-y:auto; display:block; }
-    .folder, .lesson { background:#fff; border:1px solid #ddd; border-radius:8px; padding:.75rem 1rem; margin:.5rem 0; position:relative; cursor:pointer; }
-    .actions { position:absolute; left:10px; top:50%; transform:translateY(-50%); }
-    .actions button { background:none; border:none; font-size:1rem; cursor:pointer; margin-right:5px; }
-    button.primary { background:#4db6ac; color:#fff; border:none; padding:.5rem 1rem; border-radius:5px; cursor:pointer; margin:.25rem; }
-    .hidden { display:none; }
-    /* Editor */
-    #editorPage { display:none; position:relative; height:100vh; }
-    #editorToolbar { position:fixed; top:0; left:0; right:0; background:#4db6ac; display:flex; gap:.5rem; padding:.5rem; z-index:100; }
-    #editorToolbar button, #editorToolbar input { background:#fff; color:#333; border:none; padding:.5rem; border-radius:4px; cursor:pointer; }
-    #editor { position:absolute; top:50px; bottom:0; left:0; right:0; padding:1rem; overflow-y:auto; background:#fff; }
-    .title-box { background:#dcedc8; border-left:5px solid #8bc34a; padding:.5rem; margin:.5rem 0; font-weight:bold; }
-    .question-box { background:#fff3cd; border-right:5px solid #ffc107; padding:.5rem; margin:1rem 0 .5rem; font-weight:bold; }
-    .answer-box { background:#e3f2fd; border-right:5px solid #2196f3; padding:.5rem; margin:0 0 1rem; }
-    .editable-paragraph { margin:10px 0; min-height:20px; outline:none; }
-    mark { background:yellow; }
-    .fullscreen-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.8); display:flex; align-items:center; justify-content:center; z-index:9999; }
-    .fullscreen-overlay img { max-width:90%; max-height:90%; }
-    .close-btn { position:absolute; top:10px; right:20px; background:#f44336; color:#fff; border:none; padding:.5rem 1rem; border-radius:5px; cursor:pointer; }
-    audio { display:block; margin:1rem 0; }
+    @import url('https://fonts.googleapis.com/css2?family=Cairo&display=swap');
+    body {
+      font-family: 'Cairo', sans-serif;
+      margin: 0; padding: 0;
+      background: #f4f9f9;
+      direction: rtl;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      color: #333;
+    }
+    header {
+      background: #4db6ac;
+      color: #fff;
+      text-align: center;
+      padding: 1.2rem;
+      font-size: 1.8rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      user-select: none;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      flex-direction: column;
+    }
+    section {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: none;
+      flex-direction: column;
+      animation: fadeIn 0.3s ease;
+    }
+    section.active {
+      display: flex;
+    }
+    h2 {
+      margin-top: 0;
+      font-weight: 700;
+      font-size: 1.4rem;
+      color: #2c3e50;
+    }
+    button {
+      background: #4db6ac;
+      color: #fff;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 0.5rem 0;
+      font-size: 1rem;
+      font-weight: 600;
+      box-shadow: 0 3px 8px rgba(77,182,172,0.4);
+      transition: background 0.3s ease;
+      user-select: none;
+      align-self: flex-start;
+    }
+    button:hover, button:focus {
+      background: #409588;
+      outline: none;
+      box-shadow: 0 0 10px #409588;
+    }
+    button:disabled {
+      background: #a0a0a0;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .list-item {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      margin: 0.5rem 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      transition: background 0.2s ease;
+    }
+    .list-item:hover {
+      background: #e0f2f1;
+    }
+    .list-item span {
+      font-size: 1.1rem;
+      font-weight: 600;
+      max-width: 80%;
+      word-break: break-word;
+    }
+    .actions {
+      display: flex;
+      gap: 0.7rem;
+      flex-shrink: 0;
+    }
+    .actions button {
+      background: none;
+      color: #666;
+      font-size: 1.3rem;
+      padding: 0;
+      border-radius: 5px;
+      transition: color 0.3s ease;
+    }
+    .actions button:hover {
+      color: #4db6ac;
+      transform: scale(1.2);
+    }
+    /* محرر الدرس */
+    #editorToolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      background: #4db6ac;
+      padding: 0.6rem 0.8rem;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      user-select: none;
+    }
+    #editorToolbar button,
+    #editorToolbar input {
+      background: #fff;
+      color: #333;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      transition: background 0.25s ease;
+      display: flex;
+      align-items: center;
+    }
+    #editorToolbar button:hover,
+    #editorToolbar button:focus {
+      background: #d0eadf;
+      outline: none;
+      box-shadow: 0 0 10px #4db6ac;
+    }
+    #editorToolbar input[type="color"],
+    #editorToolbar input[type="file"],
+    #editorToolbar input[type="text"] {
+      padding: 0;
+      width: 34px;
+      height: 34px;
+      box-shadow: none;
+      cursor: pointer;
+    }
+    #searchBox {
+      flex-grow: 1;
+      max-width: 160px;
+      padding-left: 0.5rem;
+      border-radius: 6px;
+    }
+    #searchBox::placeholder {
+      color: #999;
+      font-size: 0.95rem;
+    }
+    #editor {
+      flex: 1;
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      padding: 1.3rem 1.5rem;
+      margin-top: 0.6rem;
+      overflow-y: auto;
+      outline: none;
+      line-height: 1.6;
+      font-size: 1.15rem;
+      color: #222;
+      box-shadow: inset 0 0 8px #ddd;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      min-height: 350px;
+      user-select: text;
+    }
+    .title-box {
+      background: #dcedc8;
+      border-left: 6px solid #8bc34a;
+      padding: 0.65rem 1rem;
+      margin: 0.7rem 0;
+      font-weight: 700;
+      font-size: 1.25rem;
+      border-radius: 6px;
+      box-shadow: inset 2px 0 #7cb342;
+    }
+    .question-box {
+      background: #fff3cd;
+      border-right: 6px solid #ffc107;
+      padding: 0.6rem 1rem;
+      margin: 1.1rem 0 0.6rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      border-radius: 6px;
+      box-shadow: inset -2px 0 #ffb300;
+    }
+    .answer-box {
+      background: #e3f2fd;
+      border-right: 6px solid #2196f3;
+      padding: 0.6rem 1rem;
+      margin: 0 0 1.2rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      box-shadow: inset -2px 0 #1e88e5;
+    }
+    mark {
+      background: #fffd75;
+    }
+    .editable-paragraph {
+      margin: 1rem 0;
+      min-height: 26px;
+      outline: none;
+    }
+    audio {
+      display: block;
+      margin: 1rem 0;
+      width: 100%;
+      max-width: 450px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #a3d5d3 inset;
+    }
+    /* عرض الصور في كامل الشاشة */
+    .fullscreen-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999;
+    }
+    .fullscreen-overlay img {
+      max-width: 90%;
+      max-height: 90%;
+      cursor: zoom-out;
+      border-radius: 12px;
+      box-shadow: 0 0 15px #555;
+      user-select: none;
+    }
+    .fullscreen-overlay .close-btn {
+      position: absolute;
+      top: 20px; right: 30px;
+      background: #f44336;
+      color: #fff;
+      border: none;
+      padding: 0.6rem 1.1rem;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 700;
+      box-shadow: 0 0 8px #f44336;
+      user-select: none;
+      transition: background 0.3s ease;
+    }
+    .fullscreen-overlay .close-btn:hover {
+      background: #c62828;
+      box-shadow: 0 0 12px #c62828;
+    }
+    /* مؤثر ظهور القسم */
+    @keyframes fadeIn {
+      from {opacity: 0;}
+      to {opacity: 1;}
+    }
+    /* استجابة الموبايل */
+    @media (max-width: 600px) {
+      body {
+        font-size: 16px;
+      }
+      main {
+        height: calc(100vh - 58px);
+      }
+      #editorToolbar {
+        gap: 0.4rem;
+        padding: 0.4rem 0.5rem;
+      }
+      #editorToolbar button, #editorToolbar input[type="color"], #editorToolbar input[type="file"], #editorToolbar input[type="text"] {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.6rem;
+        border-radius: 5px;
+        min-width: 36px;
+        min-height: 36px;
+      }
+      #searchBox {
+        max-width: 120px;
+      }
+      #editor {
+        font-size: 1rem;
+      }
+      .list-item span {
+        font-size: 1rem;
+      }
+      button, button.primary {
+        font-size: 0.95rem;
+        padding: 0.45rem 1rem;
+      }
+      header {
+        font-size: 1.4rem;
+        padding: 0.85rem;
+      }
+    }
   </style>
 </head>
 <body>
+  <header>كشكولي</header>
+  <main>
+    <!-- صفحة المواد -->
+    <section id="foldersPage" class="active" aria-label="صفحة المواد">
+      <h2>موادك</h2>
+      <div id="foldersList" role="list" aria-label="قائمة المواد"></div>
+      <button type="button" id="addFolderBtn" aria-label="إضافة مادة جديدة">+ مادة جديدة</button>
+    </section>
 
-<section id="foldersPage">
-  <h2>موادك</h2>
-  <div id="foldersList"></div>
-  <button class="primary" onclick="addFolder()">+ مادة جديدة</button>
-</section>
+    <!-- صفحة الدروس -->
+    <section id="lessonsPage" aria-label="صفحة الدروس">
+      <button type="button" id="backToFoldersBtn" aria-label="عودة إلى المواد">◀ المواد</button>
+      <h2 id="currentFolderTitle"></h2>
+      <div id="lessonsList" role="list" aria-label="قائمة الدروس"></div>
+      <button type="button" id="addLessonBtn" aria-label="إضافة درس جديد">+ درس جديد</button>
+    </section>
 
-<section id="lessonsPage" class="hidden">
-  <button class="primary" onclick="showPage('foldersPage')">◀ المواد</button>
-  <h2 id="currentFolderTitle"></h2>
-  <div id="lessonsList"></div>
-  <button class="primary" onclick="addLesson()">+ درس جديد</button>
-</section>
+    <!-- صفحة المحرر -->
+    <section id="editorPage" aria-label="صفحة تحرير الدرس">
+      <button type="button" id="backToLessonsBtn" aria-label="عودة إلى الدروس">◀ الدروس</button>
+      <h2 id="lessonTitle"></h2>
+      <div id="editorToolbar" role="toolbar" aria-label="أدوات تحرير النص">
+        <button type="button" aria-label="إضافة عنوان" data-insert-html="&lt;div class=&quot;title-box&quot;&gt;عنوان جديد&lt;/div&gt;">+ عنوان</button>
+        <button type="button" aria-label="إضافة سؤال" data-insert-html="&lt;div class=&quot;question-box&quot;&gt;سؤال:&lt;/div&gt;">+ سؤال</button>
+        <button type="button" aria-label="إضافة إجابة" data-insert-html="&lt;div class=&quot;answer-box&quot;&gt;إجابة:&lt;/div&gt;">+ إجابة</button>
+        <button type="button" id="boldBtn" aria-label="نص عريض (Ctrl+B)">عريض</button>
+        <button type="button" id="italicBtn" aria-label="نص مائل (Ctrl+I)">مائل</button>
+        <input type="color" id="colorPicker" title="اختر لون النص" aria-label="اختيار لون النص">
+        <input type="file" id="imageInput" accept="image/*" title="إدراج صورة" aria-label="اختيار صورة لإدراجها">
+        <button type="button" id="recordBtn" aria-label="تسجيل صوتي">🎙 تسجيل</button>
+        <input type="text" id="searchBox" placeholder="بحث..." title="بحث في المحتوى" aria-label="بحث في المحتوى النصي">
+      </div>
+      <div id="editor" contenteditable="true" spellcheck="true" aria-multiline="true" role="textbox" aria-label="محرر نص الدرس">اكتب هنا...</div>
+    </section>
+  </main>
 
-<section id="editorPage" class="hidden">
-  <div id="editorToolbar">
-    <button class="primary" onclick="backToLessons()">◀ الدروس</button>
-    <button onclick="insertAtCursor('<div class=\\'title-box\\'>عنوان جديد</div><div><br></div>')">+ عنوان</button>
-    <button onclick="insertAtCursor('<div class=\\'question-box\\'>س: ...</div><div><br></div>')">+ سؤال</button>
-    <button onclick="insertAtCursor('<div class=\\'answer-box\\'>الإجابة:</div><div><br></div>')">+ إجابة</button>
-    <button onclick="document.execCommand('bold')">عريض</button>
-    <input type="color" id="colorPicker" title="لون الكتابة">
-    <button id="recordBtn">🎙 تسجيل</button>
-    <input type="text" id="searchBox" placeholder="بحث..." oninput="highlightText(this.value)">
-  </div>
-  <div id="editor" contenteditable="true"></div>
-</section>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // التعاريف والمتغيرات الرئيسية
+      let folders = JSON.parse(localStorage.getItem('folders')) || [];
+      let currentFolderIndex = null;
+      let currentLessonIndex = null;
+      let currentColor = '#000000';
 
-<script>
-  let folders = JSON.parse(localStorage.getItem('folders'))||[];
-  let currentFolder=null, currentLessonIndex=null;
-  let currentColor='#000';
-  let mediaRec, audioChunks=[], isRec=false;
+      let mediaRecorder = null;
+      let audioChunks = [];
+      let isRecording = false;
 
-  function saveData(){ localStorage.setItem('folders',JSON.stringify(folders)); }
-  function showPage(id){ ['foldersPage','lessonsPage','editorPage'].forEach(p=>document.getElementById(p).classList.toggle('hidden', p!==id)); }
+      // عناصر DOM
+      const foldersList = document.getElementById('foldersList');
+      const lessonsList = document.getElementById('lessonsList');
+      const editor = document.getElementById('editor');
+      const currentFolderTitle = document.getElementById('currentFolderTitle');
+      const lessonTitle = document.getElementById('lessonTitle');
+      const backToFoldersBtn = document.getElementById('backToFoldersBtn');
+      const backToLessonsBtn = document.getElementById('backToLessonsBtn');
+      const addFolderBtn = document.getElementById('addFolderBtn');
+      const addLessonBtn = document.getElementById('addLessonBtn');
+      const recordBtn = document.getElementById('recordBtn');
+      const imageInput = document.getElementById('imageInput');
+      const colorPicker = document.getElementById('colorPicker');
+      const searchBox = document.getElementById('searchBox');
+      const editorToolbar = document.getElementById('editorToolbar');
 
-  function renderFolders(){ const el=document.getElementById('foldersList'); el.innerHTML='';
-    folders.forEach((f,i)=>{ const d=document.createElement('div'); d.className='folder';
-      d.innerHTML=`<span onclick="openFolder(${i})">${f.name}</span><div class=\"actions\"><button onclick=\"editFolder(${i})\">✏️</button><button onclick=\"deleteFolder(${i})\">🗑️</button></div>`;
-      el.appendChild(d);
+      // حفظ البيانات
+      function saveData() {
+        localStorage.setItem('folders', JSON.stringify(folders));
+      }
+
+      // عرض صفحة محددة
+      function showPage(id) {
+        document.querySelectorAll('section').forEach(section => {
+          section.classList.toggle('active', section.id === id);
+        });
+      }
+
+      // عرض المواد
+      function renderFolders() {
+        foldersList.innerHTML = '';
+        folders.forEach((folder, idx) => {
+          const div = document.createElement('div');
+          div.className = 'list-item folder';
+          div.innerHTML = `
+            <span tabindex="0" role="button" aria-pressed="false" aria-label="فتح المادة ${folder.name}">${folder.name}</span>
+            <div class="actions">
+              <button aria-label="تعديل المادة ${folder.name}">✏️</button>
+              <button aria-label="حذف المادة ${folder.name}">🗑️</button>
+            </div>
+          `;
+          // إضافة أحداث القراءة والنقر
+          const span = div.querySelector('span');
+          span.addEventListener('click', () => openFolder(idx));
+          span.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openFolder(idx); } });
+          // أزرار تعديل وحذف
+          const [editBtn, delBtn] = div.querySelectorAll('.actions button');
+          editBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            editFolder(idx);
+          });
+          delBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            deleteFolder(idx);
+          });
+          foldersList.appendChild(div);
+        });
+      }
+
+      // إضافة مادة
+      function addFolder() {
+        const name = prompt('اسم المادة:');
+        if (name && name.trim()) {
+          folders.push({ name: name.trim(), lessons: [] });
+          saveData();
+          renderFolders();
+          showPage('foldersPage');
+          addFolderBtn.focus();
+        }
+      }
+
+      // فتح مادة
+      function openFolder(idx) {
+        currentFolderIndex = idx;
+        currentLessonIndex = null;
+        currentFolderTitle.textContent = folders[idx].name;
+        renderLessons();
+        showPage('lessonsPage');
+        addLessonBtn.focus();
+      }
+
+      // تعديل مادة
+      function editFolder(idx) {
+        const name = prompt('اسم جديد للمادة:', folders[idx].name);
+        if (name && name.trim()) {
+          folders[idx].name = name.trim();
+          saveData();
+          renderFolders();
+        }
+      }
+
+      // حذف مادة
+      function deleteFolder(idx) {
+        if (confirm('هل تريد حذف هذه المادة؟')) {
+          folders.splice(idx, 1);
+          saveData();
+          renderFolders();
+          showPage('foldersPage');
+          addFolderBtn.focus();
+        }
+      }
+
+      // عرض الدروس
+      function renderLessons() {
+        lessonsList.innerHTML = '';
+        if (currentFolderIndex === null) return;
+        folders[currentFolderIndex].lessons.forEach((lesson, idx) => {
+          const div = document.createElement('div');
+          div.className = 'list-item lesson';
+          div.innerHTML = `
+            <span tabindex="0" role="button" aria-pressed="false" aria-label="فتح الدرس ${lesson.name}">${lesson.name}</span>
+            <div class="actions">
+              <button aria-label="تعديل الدرس ${lesson.name}">✏️</button>
+              <button aria-label="حذف الدرس ${lesson.name}">🗑️</button>
+            </div>
+          `;
+          // أحداث النقر والكيبورد
+          const span = div.querySelector('span');
+          span.addEventListener('click', () => openLesson(idx));
+          span.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLesson(idx); } });
+          // أزرار تعديل وحذف
+          const [editBtn, delBtn] = div.querySelectorAll('.actions button');
+          editBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            editLesson(idx);
+          });
+          delBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            deleteLesson(idx);
+          });
+          lessonsList.appendChild(div);
+        });
+      }
+
+      // إضافة درس
+      function addLesson() {
+        if (currentFolderIndex === null) {
+          alert('يرجى اختيار مادة أولاً.');
+          return;
+        }
+        const name = prompt('اسم الدرس:');
+        if (name && name.trim()) {
+          folders[currentFolderIndex].lessons.push({ name: name.trim(), content: '' });
+          saveData();
+          renderLessons();
+          addLessonBtn.focus();
+        }
+      }
+
+      // فتح درس
+      function openLesson(idx) {
+        if (currentFolderIndex === null) return;
+        currentLessonIndex = idx;
+        const lesson = folders[currentFolderIndex].lessons[idx];
+        lessonTitle.textContent = lesson.name;
+        editor.innerHTML = lesson.content || '<p><br></p>';
+        showPage('editorPage');
+        editor.focus();
+      }
+
+      // تعديل درس
+      function editLesson(idx) {
+        const name = prompt('اسم جديد للدرس:', folders[currentFolderIndex].lessons[idx].name);
+        if (name && name.trim()) {
+          folders[currentFolderIndex].lessons[idx].name = name.trim();
+          saveData();
+          renderLessons();
+        }
+      }
+
+      // حذف درس
+      function deleteLesson(idx) {
+        if (confirm('هل تريد حذف هذا الدرس؟')) {
+          folders[currentFolderIndex].lessons.splice(idx, 1);
+          saveData();
+          renderLessons();
+        }
+      }
+
+      // العودة للمواد
+      function backToFolders() {
+        saveCurrentLesson();
+        showPage('foldersPage');
+        addFolderBtn.focus();
+      }
+
+      // العودة للدروس
+      function backToLessons() {
+        saveCurrentLesson();
+        showPage('lessonsPage');
+        addLessonBtn.focus();
+      }
+
+      // حفظ محتوى الدرس الحالي
+      function saveCurrentLesson() {
+        if (currentFolderIndex === null || currentLessonIndex === null) return;
+        folders[currentFolderIndex].lessons[currentLessonIndex].content = editor.innerHTML;
+        saveData();
+      }
+
+      // إدراج HTML في موضع المؤشر
+      function insertAtCursor(html) {
+        const sel = window.getSelection();
+        if (!sel.rangeCount) return;
+        const range = sel.getRangeAt(0);
+        const el = document.createElement('div');
+        el.innerHTML = html;
+        const frag = document.createDocumentFragment();
+        while (el.firstChild) frag.appendChild(el.firstChild);
+        range.deleteContents();
+        range.insertNode(frag);
+        // وضع المؤشر بعد المحتوى المضاف
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+        editor.focus();
+      }
+
+      // معالجة أزرار الإدراج في شريط الأدوات
+      editorToolbar.querySelectorAll('button[data-insert-html]').forEach(btn => {
+        btn.addEventListener('click', () => insertAtCursor(btn.getAttribute('data-insert-html')));
+      });
+      // أزرار التنسيق النصي
+      document.getElementById('boldBtn')?.addEventListener('click', () => {
+        document.execCommand('bold', false, null);
+        editor.focus();
+      });
+      document.getElementById('italicBtn')?.addEventListener('click', () => {
+        document.execCommand('italic', false, null);
+        editor.focus();
+      });
+
+      // تغيير لون النص
+      colorPicker.addEventListener('input', (e) => {
+        document.execCommand('styleWithCSS', false, true);
+        document.execCommand('foreColor', false, e.target.value);
+        editor.focus();
+      });
+
+      // إدراج صورة من ملف
+      imageInput.addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = document.createElement('img');
+          img.src = reader.result;
+          img.style.maxWidth = '160px';
+          img.style.cursor = 'pointer';
+          img.alt = 'صورة مضافة';
+          img.addEventListener('mousedown', event => {
+            let timer = setTimeout(() => {
+              const overlay = document.createElement('div');
+              overlay.className = 'fullscreen-overlay';
+              overlay.innerHTML = `<img src="${img.src}" alt="صورة موسعة"><button class="close-btn" aria-label="إغلاق الصورة المكبرة">إغلاق</button>`;
+              document.body.appendChild(overlay);
+              // إغلاق عند النقر على الصورة المكبرة أو الأزرار
+              overlay.querySelector('img').addEventListener('click', () => overlay.remove());
+              overlay.querySelector('.close-btn').addEventListener('click', () => overlay.remove());
+            }, 500);
+            img.onmouseup = img.onmouseout = () => clearTimeout(timer);
+          });
+          insertAtCursor(img.outerHTML);
+        };
+        reader.readAsDataURL(file);
+        imageInput.value = ''; // إعادة تعيين الإدخال للسماح بالرفع مجددا
+      });
+
+      // بحث وتظليل في المحرر (تظليل النصوص المطابقة)
+      searchBox.addEventListener('input', () => {
+        const term = searchBox.value.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // escaping regex chars
+        if (!term) {
+          editor.innerHTML = editor.innerHTML.replace(/<\/?mark>/g, ''); // إزالة التظليل إن وجد
+          return;
+        }
+        const regex = new RegExp(term, 'gi');
+        // حتى لا يؤثر على الوسوم، نستخدم طريقة آمنة – استبدال النص الخام فقط
+        // ملاحظة: هذه الطريقة قد تُزيل بعض التنسيقات بغير قصد في حالات متقدمة
+        // لو أردت حلًا معقدًا ينبغي استخدام مكتبة مثل mark.js
+        let text = editor.textContent;
+        let markedHTML = text.replace(regex, match => `<mark>${match}</mark>`);
+        editor.innerHTML = markedHTML;
+      });
+
+      // إضافة فقرة جديدة عند النقر في مساحة فارغة في المحرر
+      editor.addEventListener('click', e => {
+        if (e.target === editor) {
+          const p = document.createElement('p');
+          p.className = 'editable-paragraph';
+          p.contentEditable = 'true';
+          p.style.color = currentColor;
+          p.innerHTML = '<br>';
+          editor.appendChild(p);
+          const range = document.createRange();
+          range.setStart(p, 0);
+          range.collapse(true);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+          p.focus();
+        }
+      });
+
+      // حفظ المحتوى تلقائياً عند التعديل لتفادي فقدان البيانات
+      editor.addEventListener('input', saveCurrentLesson);
+
+      // تسجيل صوتي مع دعم المتصفحات
+      async function initMediaRecorder() {
+        if (!navigator.mediaDevices || !window.MediaRecorder) {
+          recordBtn.disabled = true;
+          recordBtn.title = 'التسجيل غير مدعوم في متصفحك';
+          return;
+        }
+        if (mediaRecorder) return;
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          mediaRecorder.ondataavailable = e => {
+            if (e.data.size > 0) audioChunks.push(e.data);
+          };
+          mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const url = URL.createObjectURL(audioBlob);
+            const audio = document.createElement('audio');
+            audio.controls = true;
+            audio.src = url;
+            editor.appendChild(audio);
+            audioChunks = [];
+            saveCurrentLesson();
+          };
+        } catch (err) {
+          alert('لم نستطع الوصول إلى الميكروفون: ' + err.message);
+          recordBtn.disabled = true;
+        }
+      }
+
+      recordBtn.addEventListener('click', async () => {
+        if (!mediaRecorder) await initMediaRecorder();
+        if (!mediaRecorder) return;
+        if (!isRecording) {
+          mediaRecorder.start();
+          isRecording = true;
+          recordBtn.textContent = '⏹ إيقاف';
+          recordBtn.style.background = '#e53935';
+          recordBtn.setAttribute('aria-pressed', 'true');
+        } else {
+          mediaRecorder.stop();
+          isRecording = false;
+          recordBtn.textContent = '🎙 تسجيل';
+          recordBtn.style.background = '';
+          recordBtn.setAttribute('aria-pressed', 'false');
+        }
+      });
+
+      // اختصارات لوحة المفاتيح (Ctrl+B, Ctrl+I للتنسيق)
+      editor.addEventListener('keydown', e => {
+        if (e.ctrlKey && !e.shiftKey && !e.altKey) {
+          switch (e.key.toLowerCase()) {
+            case 'b':
+              e.preventDefault();
+              document.execCommand('bold');
+              break;
+            case 'i':
+              e.preventDefault();
+              document.execCommand('italic');
+              break;
+          }
+        }
+      });
+
+      // ربط أزرار التنقل والإضافة
+      backToFoldersBtn.addEventListener('click', backToFolders);
+      backToLessonsBtn.addEventListener('click', backToLessons);
+      addFolderBtn.addEventListener('click', addFolder);
+      addLessonBtn.addEventListener('click', addLesson);
+
+      // بدء التطبيق
+      renderFolders();
+      showPage('foldersPage');
+      addFolderBtn.focus();
     });
-  }
-  function addFolder(){ const n=prompt('اسم المادة:'); if(n){ folders.push({name:n,lessons:[]}); saveData(); renderFolders(); }}
-  function editFolder(i){ const n=prompt('اسم جديد:',folders[i].name); if(n){ folders[i].name=n; saveData(); renderFolders(); }}
-  function deleteFolder(i){ if(confirm('حذف؟')){ folders.splice(i,1); saveData(); renderFolders(); }}
-  function openFolder(i){ currentFolder=folders[i]; document.getElementById('currentFolderTitle').textContent=currentFolder.name; renderLessons(); showPage('lessonsPage'); }
-
-  function renderLessons(){ const el=document.getElementById('lessonsList'); el.innerHTML='';
-    currentFolder.lessons.forEach((ls,i)=>{ const d=document.createElement('div'); d.className='lesson';
-      d.innerHTML=`<span onclick="openLesson(${i})">${ls.name}</span><div class=\"actions\"><button onclick=\"editLesson(${i})\">✏️</button><button onclick=\"deleteLesson(${i})\">🗑️</button></div>`;
-      el.appendChild(d);
-    });
-  }
-  function addLesson(){ const n=prompt('اسم الدرس:'); if(n){ currentFolder.lessons.push({name:n,content:''}); saveData(); renderLessons(); }}
-  function editLesson(i){ const n=prompt('اسم جديد:',currentFolder.lessons[i].name); if(n){ currentFolder.lessons[i].name=n; saveData(); renderLessons(); }}
-  function deleteLesson(i){ if(confirm('حذف؟')){ currentFolder.lessons.splice(i,1); saveData(); renderLessons(); }}
-  function openLesson(i){ currentLessonIndex=i; const ed=document.getElementById('editor'); ed.innerHTML=currentFolder.lessons[i].content||''; showPage('editorPage'); startRecordingModule(); }
-  function backToLessons(){ if(currentFolder&& currentLessonIndex!=null){ currentFolder.lessons[currentLessonIndex].content=document.getElementById('editor').innerHTML; saveData(); } showPage('lessonsPage'); }
-
-  function insertAtCursor(html){ const sel=window.getSelection(); if(!sel.rangeCount)return; const r=sel.getRangeAt(0);
-    const d=document.createElement('div'); d.innerHTML=html; const f=document.createDocumentFragment(); while(d.firstChild)f.appendChild(d.firstChild);
-    r.deleteContents(); r.insertNode(f);
-  }
-
-  document.getElementById('colorPicker').addEventListener('input',e=>{ currentColor=e.target.value; document.execCommand('styleWithCSS',false,true); document.execCommand('foreColor',false,currentColor); });
-
-  function highlightText(term){ const ed=document.getElementById('editor'); let raw=ed.innerHTML.replace(/<mark>|<\\/mark>/g,'');
-    ed.innerHTML = term? raw.replace(new RegExp(term,'gi'),m=>`<mark>${m}</mark>`) : raw;
-  }
-
-  document.getElementById('editor').addEventListener('click',e=>{ if(e.target.id==='editor'){ const p=document.createElement('div'); p.className='editable-paragraph'; p.contentEditable=true; p.style.color=currentColor; document.getElementById('editor').appendChild(p); p.focus(); }});
-
-  // Image fullscreen
-  document.getElementById('editor').addEventListener('mousedown',e=>{ if(e.target.tagName==='IMG'){ let t=setTimeout(()=>{ const ov=document.createElement('div'); ov.className='fullscreen-overlay'; ov.innerHTML=`<img src=\"${e.target.src}\"/><button class=\"close-btn\" onclick=\"this.parentElement.remove()\">إغلاق</button>`; document.body.appendChild(ov); },500);
-    e.target.onmouseup=()=>clearTimeout(t); e.target.onmouseout=()=>clearTimeout(t);
-  }});
-
-  // Audio Recording Module
-  async function startRecordingModule(){ if(!mediaRec){ const stream=await navigator.mediaDevices.getUserMedia({audio:true}); mediaRec=new MediaRecorder(stream);
-      mediaRec.ondataavailable=e=>{ if(e.data.size)audioChunks.push(e.data); };
-      mediaRec.onstop=()=>{ const blob=new Blob(audioChunks,{type:'audio/mp3'}); const url=URL.createObjectURL(blob); const a=document.createElement('audio'); a.controls=true; a.src=url; document.getElementById('editor').appendChild(a); audioChunks=[]; };
-    }
-  }
-  const recBtn=document.getElementById('recordBtn'); recBtn.onclick=async()=>{ if(!isRec){ await startRecordingModule(); mediaRec.start(); isRec=true; recBtn.textContent='⏹ إيقاف'; } else{ mediaRec.stop(); isRec=false; recBtn.textContent='🎙 تسجيل'; }};
-
-  renderFolders(); showPage('foldersPage');
-</script>
+  </script>
 </body>
 </html>
+</content>
+</create_file>
