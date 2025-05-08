@@ -1,4 +1,3 @@
- 
 <!DOCTYPE html>
 <html lang="ar">
 <head>
@@ -6,7 +5,156 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>كشكولي</title>
   <style>
-    /* ... (نفس التنسيق السابق) ... */
+    body {
+      font-family: 'Cairo', sans-serif;
+      margin: 0; padding: 0;
+      background: #f4f9f9;
+      direction: rtl;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #4db6ac;
+      color: #fff;
+      text-align: center;
+      padding: 1rem;
+      font-size: 1.6rem;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+    section {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: none;
+      flex-direction: column;
+    }
+    section.active {
+      display: flex;
+    }
+    button {
+      background: #4db6ac;
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 0.25rem 0;
+      font-size: 1rem;
+    }
+    button:hover {
+      background: #409588;
+    }
+    .list-item {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin: 0.5rem 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .actions button {
+      background: none;
+      color: #666;
+      font-size: 1.2rem;
+      padding: 0;
+    }
+    /* محرر الدرس */
+    #editorToolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      background: #4db6ac;
+      padding: 0.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    #editorToolbar button,
+    #editorToolbar input {
+      background: #fff;
+      color: #333;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    #editorToolbar input[type="color"],
+    #editorToolbar input[type="file"],
+    #editorToolbar input[type="text"] {
+      padding: 0;
+      width: 32px;
+      height: 32px;
+    }
+    #editor {
+      flex: 1;
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      padding: 1rem;
+      margin-top: 0.5rem;
+      overflow-y: auto;
+      outline: none;
+      line-height: 1.5;
+      font-size: 1.1rem;
+      color: #333;
+    }
+    .title-box {
+      background: #dcedc8;
+      border-left: 5px solid #8bc34a;
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+      font-weight: bold;
+    }
+    .question-box {
+      background: #fff3cd;
+      border-right: 5px solid #ffc107;
+      padding: 0.5rem;
+      margin: 1rem 0 0.5rem;
+      font-weight: bold;
+    }
+    .answer-box {
+      background: #e3f2fd;
+      border-right: 5px solid #2196f3;
+      padding: 0.5rem;
+      margin: 0 0 1rem;
+    }
+    mark { background: yellow; }
+    .editable-paragraph { margin: 1rem 0; min-height: 20px; outline: none; }
+    .fullscreen-overlay {
+      position: fixed; top:0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.8);
+      display:flex; align-items:center; justify-content:center;
+      z-index:9999;
+    }
+    .fullscreen-overlay img {
+      max-width: 90%; max-height: 90%;
+      cursor: zoom-out; border-radius:8px;
+    }
+    .fullscreen-overlay .close-btn {
+      position: absolute; top:15px; right:25px;
+      background:#f44336; color:#fff; border:none;
+      padding:0.5rem 1rem; border-radius:5px;
+      cursor:pointer; font-size:1rem;
+    }
+    audio {
+      display:block; margin:1rem 0; width:100%; max-width:400px;
+    }
   </style>
 </head>
 <body>
