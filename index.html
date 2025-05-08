@@ -1,90 +1,205 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق طلبات المطعم</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>كشكولي</title>
+  <style>
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Cairo', sans-serif;
+      direction: rtl; height: 100vh;
+      overflow: hidden;
+    }
+    /* صفحات التنقل */
+    #foldersPage, #lessonsPage { padding: 1rem; }
+    /* محرر الدرس */
+    #editorPage {
+      display: none;
+      position: relative;
+      height: 100vh;
+      background: #f4f9f9;
+    }
+    /* شريط الأدوات في أعلى المحرر */
+    #editorToolbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: #4db6ac; padding: 0.5rem;
+      display: flex; align-items: center;
+      gap: 0.5rem; z-index: 100;
+    }
+    #editorToolbar button, 
+    #editorToolbar input[type=color] {
+      background: white; color: #333;
+      border: none; padding: 0.5rem;
+      border-radius: 4px; cursor: pointer;
+    }
+    /* المنطقة القابلة للكتابة */
+    #editor {
+      position: absolute;
+      top: 50px; /* ارتفاع الشريط */
+      bottom: 0; left: 0; right: 0;
+      padding: 1rem;
+      overflow-y: auto;
+      background: white;
+    }
+    /* بطاقات العنوان والسؤال والإجابة */
+    .title-box { background: #dcedc8; padding: 0.5rem; margin: 0.5rem 0; }
+    .question-box { background: #fff3cd; padding: 0.5rem; margin: 0.5rem 0; }
+    .answer-box   { background: #e3f2fd; padding: 0.5rem; margin: 0.5rem 0; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1> بابا عبده </h1>
-        
-        <label for="num-tables">عدد الترابيزات:</label>
-        <input type="number" id="num-tables" min="1" max="10" value="1">
-        <button onclick="createTables()">إنشاء الترابيزات</button>
-        
-        <div id="tables"></div>
 
-        <!-- قائمة الطعام كنافذة منبثقة -->
-        <div id="menu-popup" class="menu-popup">
-            <h2>القائمة</h2>
-            <div class="menu">
-                <!-- قسم المكرونة -->
-                <div class="section">
-                    <h3>المكرونة</h3>
-                    <button onclick="chooseExtraOption('مكرونة صغير', 25)">مكرونة صغير - 25</button>
-                    <button onclick="chooseExtraOption('مكرونة وسط', 30)">مكرونة وسط - 30</button>
-                    <button onclick="chooseExtraOption('مكرونة كبير', 35)">مكرونة كبير - 35</button>
-                    <button onclick="chooseExtraOption('مكرونة كينج', 45)">مكرونة كينج - 45</button>
-                </div>   <!-- قسم الكشري -->
-                <div class="section">
-                    <h3>الكشري</h3>
-                    <button onclick="addOrderToActiveTable('كشري صغير', 25)">كشري صغير - 25</button>
-                    <button onclick="addOrderToActiveTable('كشري وسط', 30)">كشري وسط - 30</button>
-                    <button onclick="addOrderToActiveTable('كشري كبير', 35)">كشري كبير - 35</button>
-                    <button onclick="addOrderToActiveTable('كشري كينج', 45)">كشري كينج - 45</button>
-                </div>
-                
-                <!-- قسم الطواجن -->
-                <div class="section">
-                    <h3>الطواجن</h3>
-                    <button onclick="addOrderToActiveTable('طاجن فراخ', 45)">طاجن فراخ - 45</button>
-                    <button onclick="addOrderToActiveTable('طاجن لحمة', 45)">طاجن لحمة - 45</button>
-                </div>
+  <!-- صفحة المواد -->
+  <section id="foldersPage">
+    <h2>مجلداتك</h2>
+    <div id="foldersList"></div>
+    <button onclick="addFolder()">+ إضافة مادة</button>
+  </section>
 
-                <!-- قسم الإضافات -->
-                <div class="section">
-                    <h3>الإضافات والمشروبات</h3>
-                    <button onclick="addOrderToActiveTable('كبدة', 20)">كبدة - 20</button>
-                    <button onclick="addOrderToActiveTable('سجق', 20)">سجق - 20</button>
-                    <button onclick="addOrderToActiveTable('مكس', 20)">مكس - 20</button>
-                    <button onclick="addOrderToActiveTable('صلصة', 10)">صلصة -10</button>
-                    <button onclick="addOrderToActiveTable('تقلية', 10)">تقلية - 10</button>
-                    <button onclick="addOrderToActiveTable('عدس', 10)">عدس - 10</button>
-                    <button onclick="addOrderToActiveTable('مشروب غازي', 15)">مشروب غازي - 15</button>
-                    <button onclick="addOrderToActiveTable('أرز بلبن', 13)">أرز بلبن - 13</button>
-                    <button onclick="addOrderToActiveTable('مياه', 5)">مياه - 5</button>
-                </div>
-            </div>
-            <button onclick="closeMenu()">إغلاق</button>
-        </div>
+  <!-- صفحة الدروس -->
+  <section id="lessonsPage" class="hidden">
+    <button onclick="backToFolders()">◀︎ المواد</button>
+    <h2 id="currentFolderTitle"></h2>
+    <div id="lessonsList"></div>
+    <button onclick="addLesson()">+ إضافة درس</button>
+  </section>
 
-        <!-- نافذة اختيار إضافات كبدة/سجق/مكس/بدون -->
-        <div id="extra-option-popup" class="menu-popup">
-            <h3>اختر إضافة:</h3>
-            <button onclick="selectPastaType('كبدة')">كبدة</button>
-            <button onclick="selectPastaType('سجق')">سجق</button>
-            <button onclick="selectPastaType('مكس')">مكس</button>
-            <button onclick="selectPastaType('بدون')">بدون</button>
-            <button onclick="closeExtraOptionPopup()">إلغاء</button>
-        </div>
-
-<!-- نافذة اختيار نوع المكرونة -->
-        <div id="pasta-type-popup" class="menu-popup">
-            <h3>اختر نوع المكرونة:</h3>
-            <button onclick="addPastaOrder('اسباجتي')">اسباجتي</button>
-            <button onclick="addPastaOrder('مقصوصة')">مقصوصة</button>
-            <button onclick="addPastaOrder('مشكل')">مشكل</button>
-            <button onclick="closePastaTypePopup()">إلغاء</button>
-        </div>
-        
-        <!-- أسفل التطبيق -->
-        <footer class="footer">
-            <p>التطبيق تحت إشراف: <span>محمد وليد سعد</span></p>
-        </footer>
+  <!-- صفحة تحرير الدرس -->
+  <section id="editorPage">
+    <!-- شريط الأدوات -->
+    <div id="editorToolbar">
+      <button onclick="backToLessons()">◀︎ الدروس</button>
+      <button onclick="insertAtCursor('<div class=&quot;title-box&quot; contenteditable=&quot;true&quot;>عنوان جديد</div><div><br></div>')">+ عنوان</button>
+      <button onclick="insertAtCursor('<div class=&quot;question-box&quot; contenteditable=&quot;true&quot;>س: ...</div><div><br></div>')">+ سؤال</button>
+      <button onclick="document.execCommand('bold')">عريض</button>
+      <input type="color" id="colorPicker" title="لون الكتابة">
+      <input type="file" id="imageInput" accept="image/*" title="إضافة صورة">
     </div>
+    <!-- المنطقة القابلة للكتابة -->
+    <div id="editor" contenteditable="true"></div>
+  </section>
 
-    <script src="script.js"></script>
+  <script>
+    // بيانات
+    let folders = JSON.parse(localStorage.getItem("folders")) || [];
+    let currentFolder = null, currentLesson = null;
+
+    function saveData() {
+      localStorage.setItem("folders", JSON.stringify(folders));
+    }
+    function show(id) {
+      document.getElementById("foldersPage").classList.toggle("hidden", id!=="foldersPage");
+      document.getElementById("lessonsPage").classList.toggle("hidden", id!=="lessonsPage");
+      document.getElementById("editorPage").classList.toggle("hidden", id!=="editorPage");
+    }
+
+    // مجلدات
+    function addFolder() {
+      const name = prompt("اسم المادة:");
+      if (!name) return;
+      folders.push({name, lessons: []});
+      saveData(); renderFolders();
+    }
+    function renderFolders() {
+      const list = document.getElementById("foldersList");
+      list.innerHTML="";
+      folders.forEach((f,i)=> {
+        const d=document.createElement("div");
+        d.textContent=f.name;
+        d.onclick=()=>openFolder(i);
+        list.appendChild(d);
+      });
+    }
+    function openFolder(i) {
+      currentFolder = folders[i];
+      document.getElementById("currentFolderTitle").textContent = currentFolder.name;
+      renderLessons(); show("lessonsPage");
+    }
+    function backToFolders(){ show("foldersPage"); }
+
+    // دروس
+    function addLesson() {
+      const name = prompt("اسم الدرس:");
+      if (!name) return;
+      currentFolder.lessons.push({name,content:""});
+      saveData(); renderLessons();
+    }
+    function renderLessons() {
+      const list = document.getElementById("lessonsList");
+      list.innerHTML="";
+      currentFolder.lessons.forEach((ls,i)=>{
+        const d=document.createElement("div");
+        d.textContent=ls.name;
+        d.onclick=()=>openLesson(i);
+        list.appendChild(d);
+      });
+    }
+    function openLesson(i) {
+      currentLesson = currentFolder.lessons[i];
+      document.getElementById("editor").innerHTML = currentLesson.content || "";
+      show("editorPage");
+    }
+    function backToLessons() {
+      if (currentLesson) {
+        currentLesson.content = document.getElementById("editor").innerHTML;
+        saveData();
+      }
+      show("lessonsPage");
+    }
+
+    // إدراج HTML في مكان المؤشر
+    function insertAtCursor(html) {
+      const sel=window.getSelection();
+      if (!sel.rangeCount) return;
+      const range=sel.getRangeAt(0);
+      const el=document.createElement("div"); el.innerHTML=html;
+      const frag=document.createDocumentFragment();
+      let node;
+      while(node=el.firstChild) frag.appendChild(node);
+      range.deleteContents();
+      range.insertNode(frag);
+    }
+
+    // أداة الألوان للكتابة الجديدة
+    document.getElementById("colorPicker")
+      .addEventListener("input", e=>{
+        document.execCommand("styleWithCSS",false,true);
+        document.execCommand("foreColor",false,e.target.value);
+      });
+
+    // رفع صورة
+    document.getElementById("imageInput")
+      .addEventListener("change", e=>{
+        const file=e.target.files[0]; if(!file) return;
+        const reader=new FileReader();
+        reader.onload=()=>{
+          const img=document.createElement("img");
+          img.src=reader.result;
+          img.style.maxWidth="150px";
+          img.oncontextmenu = ()=>false;
+          img.onmousedown = null;
+          // فتح ملء الشاشة على الضغط مطوّل
+          img.addEventListener("mousedown", startLongPress);
+          function startLongPress(evt) {
+            let timeout = setTimeout(()=>{
+              const overlay=document.createElement("div");
+              overlay.className="fullscreen-image";
+              overlay.innerHTML=`<img src="${img.src}" onclick="this.parentElement.remove()">`;
+              document.body.appendChild(overlay);
+            },800);
+            img.onmouseup=()=>clearTimeout(timeout);
+            img.onmouseout=()=>clearTimeout(timeout);
+          }
+          insertAtCursor(img.outerHTML);
+        };
+        reader.readAsDataURL(file);
+      });
+
+    // بدء
+    renderFolders();
+    show("foldersPage");
+  </script>
 </body>
 </html>
