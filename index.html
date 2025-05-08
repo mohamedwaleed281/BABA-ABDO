@@ -5,7 +5,176 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>كشكولي</title>
   <style>
-    /* نفس أنماط CSS السابقة */
+    body {
+      font-family: 'Cairo', sans-serif;
+      margin: 0; padding: 0;
+      background: #f4f9f9;
+      direction: rtl;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #4db6ac;
+      color: #fff;
+      text-align: center;
+      padding: 1rem;
+      font-size: 1.6rem;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+    section {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: none;
+      flex-direction: column;
+    }
+    section.active {
+      display: flex;
+    }
+    button {
+      background: #4db6ac;
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 0.25rem 0;
+      font-size: 1rem;
+    }
+    button:hover {
+      background: #409588;
+    }
+    .list-item {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin: 0.5rem 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .actions button {
+      background: none;
+      color: #666;
+      font-size: 1.2rem;
+      padding: 0;
+    }
+    /* محرر الدرس */
+    #editorToolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      background: #4db6ac;
+      padding: 0.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    #editorToolbar button,
+    #editorToolbar input {
+      background: #fff;
+      color: #333;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    #editorToolbar input[type="color"],
+    #editorToolbar input[type="file"],
+    #editorToolbar input[type="text"] {
+      padding: 0;
+      width: 32px;
+      height: 32px;
+    }
+    #editor {
+      flex: 1;
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      padding: 1rem;
+      margin-top: 0.5rem;
+      overflow-y: auto;
+      outline: none;
+      line-height: 1.5;
+      font-size: 1.1rem;
+      color: #333;
+    }
+    .title-box {
+      background: #dcedc8;
+      border-left: 5px solid #8bc34a;
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+      font-weight: bold;
+    }
+    .question-box {
+      background: #fff3cd;
+      border-right: 5px solid #ffc107;
+      padding: 0.5rem;
+      margin: 1rem 0 0.5rem;
+      font-weight: bold;
+    }
+    .answer-box {
+      background: #e3f2fd;
+      border-right: 5px solid #2196f3;
+      padding: 0.5rem;
+      margin: 0 0 1rem;
+    }
+    mark { background: yellow; }
+    .editable-paragraph { margin: 1rem 0; min-height: 20px; outline: none; }
+    .fullscreen-overlay {
+      position: fixed; top:0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.8);
+      display:flex; align-items:center; justify-content:center;
+      z-index:9999;
+    }
+    .fullscreen-overlay img {
+      max-width: 90%; max-height: 90%;
+      cursor: zoom-out; border-radius:8px;
+    }
+    .fullscreen-overlay .close-btn {
+      position: absolute; top:15px; right:25px;
+      background:#f44336; color:#fff; border:none;
+      padding:0.5rem 1rem; border-radius:5px;
+      cursor:pointer; font-size:1rem;
+    }
+    audio {
+      display:block; margin:1rem 0; width:100%; max-width:400px;
+      cursor: move; /* لجعل الصوت قابل للسحب */
+    }
+    .audio-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .delete-audio {
+      background: none;
+      color: #f44336;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+    .move-audio {
+      background: none;
+      color: #4db6ac;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
   </style>
 </head>
 <body>
@@ -46,276 +215,299 @@
   </main>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // البيانات
-      let folders = [];
-      let currentFolderIndex = null;
-      let currentLessonIndex = null;
-      let currentColor = '#000000';
+    // إعداد IndexedDB
+    let db;
+    const request = indexedDB.open('kashkooliDB', 1);
 
-      // إعداد IndexedDB
-      const request = indexedDB.open('KashkooliDB', 1);
-      request.onupgradeneeded = (event) => {
-        const db = event.target.result;
-        db.createObjectStore('folders', { keyPath: 'id', autoIncrement: true });
-      };
+    request.onupgradeneeded = (event) => {
+      db = event.target.result;
+      db.createObjectStore('folders', { keyPath: 'id', autoIncrement: true });
+    };
+
+    request.onsuccess = (event) => {
+      db = event.target.result;
+      loadFolders();
+    };
+
+    function saveData() {
+      const transaction = db.transaction(['folders'], 'readwrite');
+      const store = transaction.objectStore('folders');
+      folders.forEach(folder => {
+        store.put(folder);
+      });
+    }
+
+    function loadFolders() {
+      const transaction = db.transaction(['folders'], 'readonly');
+      const store = transaction.objectStore('folders');
+      const request = store.getAll();
+
       request.onsuccess = (event) => {
-        const db = event.target.result;
-        loadFolders(db);
+        folders = event.target.result;
+        renderFolders();
       };
+    }
 
-      function loadFolders(db) {
-        const transaction = db.transaction('folders', 'readonly');
-        const store = transaction.objectStore('folders');
-        const getAll = store.getAll();
-        getAll.onsuccess = () => {
-          folders = getAll.result;
-          renderFolders();
-        };
+    // البيانات
+    let folders = [];
+    let currentFolderIndex = null;
+    let currentLessonIndex = null;
+    let currentColor = '#000000';
+
+    // التنقل بين الصفحات
+    function showPage(id) {
+      document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    // إدارة المواد
+    function renderFolders() {
+      const list = document.getElementById('foldersList');
+      list.innerHTML = '';
+      folders.forEach((f, idx) => {
+        const div = document.createElement('div');
+        div.className = 'list-item folder';
+        div.innerHTML = `
+          <span onclick="openFolder(${idx})">${f.name}</span>
+          <div class="actions">
+            <button onclick="editFolder(${idx});event.stopPropagation()">✏️</button>
+            <button onclick="deleteFolder(${idx});event.stopPropagation()">🗑️</button>
+          </div>`;
+        list.appendChild(div);
+      });
+    }
+    window.renderFolders = renderFolders;
+
+    function addFolder() {
+      const name = prompt('اسم المادة:');
+      if (name) {
+        folders.push({ name: name.trim(), lessons: [] });
+        saveData(); renderFolders();
       }
+    }
+    window.addFolder = addFolder;
 
-      function saveData(db) {
-        const transaction = db.transaction('folders', 'readwrite');
-        const store = transaction.objectStore('folders');
-        folders.forEach(folder => store.put(folder));
+    function openFolder(idx) {
+      currentFolderIndex = idx;
+      document.getElementById('currentFolderTitle').textContent = folders[idx].name;
+      renderLessons();
+      showPage('lessonsPage');
+    }
+    window.openFolder = openFolder;
+
+    function editFolder(idx) {
+      const name = prompt('اسم جديد للمادة:', folders[idx].name);
+      if (name) {
+        folders[idx].name = name.trim();
+        saveData(); renderFolders();
       }
+    }
+    window.editFolder = editFolder;
 
-      // التنقل بين الصفحات
-      function showPage(id) {
-        document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-      }
-
-      // إدارة المواد
-      function renderFolders() {
-        const list = document.getElementById('foldersList');
-        list.innerHTML = '';
-        folders.forEach((f, idx) => {
-          const div = document.createElement('div');
-          div.className = 'list-item folder';
-          div.innerHTML = `
-            <span onclick="openFolder(${idx})">${f.name}</span>
-            <div class="actions">
-              <button onclick="editFolder(${idx});event.stopPropagation()">✏️</button>
-              <button onclick="deleteFolder(${idx});event.stopPropagation()">🗑️</button>
-            </div>`;
-          list.appendChild(div);
-        });
-      }
-
-      function addFolder() {
-        const name = prompt('اسم المادة:');
-        if (name) {
-          folders.push({ name: name.trim(), lessons: [] });
-          saveData(request.result);
-          renderFolders();
-        }
-      }
-
-      function openFolder(idx) {
-        currentFolderIndex = idx;
-        document.getElementById('currentFolderTitle').textContent = folders[idx].name;
-        renderLessons();
-        showPage('lessonsPage');
-      }
-
-      function editFolder(idx) {
-        const name = prompt('اسم جديد للمادة:', folders[idx].name);
-        if (name) {
-          folders[idx].name = name.trim();
-          saveData(request.result);
-          renderFolders();
-        }
-      }
-
-      function deleteFolder(idx) {
-        if (confirm('هل تريد حذف هذه المادة؟')) {
-          folders.splice(idx, 1);
-          saveData(request.result);
-          renderFolders();
-          showPage('foldersPage');
-        }
-      }
-
-      // إدارة الدروس
-      function renderLessons() {
-        const list = document.getElementById('lessonsList');
-        list.innerHTML = '';
-        folders[currentFolderIndex].lessons.forEach((ls, idx) => {
-          const div = document.createElement('div');
-          div.className = 'list-item lesson';
-          div.innerHTML = `
-            <span onclick="openLesson(${idx})">${ls.name}</span>
-            <div class="actions">
-              <button onclick="editLesson(${idx});event.stopPropagation()">✏️</button>
-              <button onclick="deleteLesson(${idx});event.stopPropagation()">🗑️</button>
-            </div>`;
-          list.appendChild(div);
-        });
-      }
-
-      function addLesson() {
-        const name = prompt('اسم الدرس:');
-        if (name) {
-          folders[currentFolderIndex].lessons.push({ name: name.trim(), content: '' });
-          saveData(request.result);
-          renderLessons();
-        }
-      }
-
-      function openLesson(idx) {
-        currentLessonIndex = idx;
-        const lesson = folders[currentFolderIndex].lessons[idx];
-        document.getElementById('lessonTitle').textContent = lesson.name;
-        document.getElementById('editor').innerHTML = lesson.content;
-        showPage('editorPage');
-      }
-
-      function editLesson(idx) {
-        const name = prompt('اسم جديد للدرس:', folders[currentFolderIndex].lessons[idx].name);
-        if (name) {
-          folders[currentFolderIndex].lessons[idx].name = name.trim();
-          saveData(request.result);
-          renderLessons();
-        }
-      }
-
-      function deleteLesson(idx) {
-        if (confirm('هل تريد حذف هذا الدرس؟')) {
-          folders[currentFolderIndex].lessons.splice(idx, 1);
-          saveData(request.result);
-          renderLessons();
-        }
-      }
-
-      function backToFolders() {
-        saveCurrentLesson();
+    function deleteFolder(idx) {
+      if (confirm('هل تريد حذف هذه المادة؟')) {
+        folders.splice(idx, 1);
+        saveData(); renderFolders();
         showPage('foldersPage');
       }
+    }
+    window.deleteFolder = deleteFolder;
 
-      function backToLessons() {
-        saveCurrentLesson();
-        showPage('lessonsPage');
-      }
-
-      function saveCurrentLesson() {
-        if (currentLessonIndex !== null) {
-          folders[currentFolderIndex].lessons[currentLessonIndex].content =
-            document.getElementById('editor').innerHTML;
-          saveData(request.result);
-        }
-      }
-
-      // محرر النص
-      function insertAtCursor(html) {
-        const sel = window.getSelection();
-        if (!sel.rangeCount) return;
-        const range = sel.getRangeAt(0);
-        const el = document.createElement('div');
-        el.innerHTML = html;
-        const frag = document.createDocumentFragment();
-        while (el.firstChild) frag.appendChild(el.firstChild);
-        range.deleteContents();
-        range.insertNode(frag);
-        range.collapse(false);
-        sel.removeAllRanges();
-        sel.addRange(range);
-      }
-
-      // تغيير اللون المباشر
-      document.getElementById('colorPicker').addEventListener('input', e => {
-        const color = e.target.value;
-        document.execCommand('styleWithCSS', false, true);
-        document.execCommand('foreColor', false, color);
-      });
-
-      // إدراج الصور مع تكبير مطوّل
-      const imageInput = document.getElementById('imageInput');
-      imageInput.addEventListener('change', e => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = () => {
-          const img = document.createElement('img');
-          img.src = reader.result;
-          img.style.maxWidth = '150px';
-          img.style.cursor = 'pointer';
-          img.addEventListener('click', () => {
-            const overlay = document.createElement('div');
-            overlay.className = 'fullscreen-overlay';
-            overlay.innerHTML = `<img src="${img.src}" style="max-width: 100%;"><button class="close-btn" onclick="this.parentElement.remove()">إغلاق</button>`;
-            document.body.appendChild(overlay);
-          });
-          insertAtCursor(img.outerHTML);
-        };
-        reader.readAsDataURL(file);
-        e.target.value = '';
-      });
-
-      // إدراج مقطع صوتي
-      const audioInput = document.getElementById('audioInput');
-      audioInput.addEventListener('change', e => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = () => {
-          const audioContainer = document.createElement('div');
-          audioContainer.className = 'audio-container';
-          const audio = document.createElement('audio');
-          audio.controls = true;
-          audio.src = reader.result;
-
-          const moveButton = document.createElement('button');
-          moveButton.innerHTML = '🔄';
-          moveButton.onclick = () => {
-            // منطق لتحريك المقطع في المحرر
-            alert('يمكنك الآن تحريك المقطع في المحرر.');
-          };
-
-          audioContainer.appendChild(audio);
-          audioContainer.appendChild(moveButton);
-          document.getElementById('editor').appendChild(audioContainer);
-        };
-        reader.readAsDataURL(file);
-        e.target.value = '';
-      });
-
-      // البحث وتظليل
-      document.getElementById('searchBox').addEventListener('input', e => {
-        const term = e.target.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const editor = document.getElementById('editor');
-        let html = editor.innerHTML.replace(/<mark>|<\/mark>/gi, '');
-        if (term) {
-          html = html.replace(new RegExp(term, 'gi'), m => `<mark>${m}</mark>`);
-        }
-        editor.innerHTML = html;
-      });
-
-      // فقرة جديدة عند النقر
-      document.getElementById('editor').addEventListener('click', e => {
+    // إدارة الدروس
+    function renderLessons() {
+      const list = document.getElementById('lessonsList');
+      list.innerHTML = '';
+      folders[currentFolderIndex].lessons.forEach((ls, idx) => {
         const div = document.createElement('div');
-        div.className = 'editable-paragraph';
-        div.contentEditable = 'true';
-        div.style.color = currentColor;
-        document.getElementById('editor').appendChild(div);
-        div.focus();
+        div.className = 'list-item lesson';
+        div.innerHTML = `
+          <span onclick="openLesson(${idx})">${ls.name}</span>
+          <div class="actions">
+            <button onclick="editLesson(${idx});event.stopPropagation()">✏️</button>
+            <button onclick="deleteLesson(${idx});event.stopPropagation()">🗑️</button>
+          </div>`;
+        list.appendChild(div);
       });
+    }
+    window.renderLessons = renderLessons;
 
-      // بدء التطبيق
-      renderFolders();
+    function addLesson() {
+      const name = prompt('اسم الدرس:');
+      if (name) {
+        folders[currentFolderIndex].lessons.push({ name: name.trim(), content: '' });
+        saveData(); renderLessons();
+      }
+    }
+    window.addLesson = addLesson;
+
+    function openLesson(idx) {
+      currentLessonIndex = idx;
+      const lesson = folders[currentFolderIndex].lessons[idx];
+      document.getElementById('lessonTitle').textContent = lesson.name;
+      document.getElementById('editor').innerHTML = lesson.content;
+      showPage('editorPage');
+    }
+    window.openLesson = openLesson;
+
+    function editLesson(idx) {
+      const name = prompt('اسم جديد للدرس:', folders[currentFolderIndex].lessons[idx].name);
+      if (name) {
+        folders[currentFolderIndex].lessons[idx].name = name.trim();
+        saveData(); renderLessons();
+      }
+    }
+    window.editLesson = editLesson;
+
+    function deleteLesson(idx) {
+      if (confirm('هل تريد حذف هذا الدرس؟')) {
+        folders[currentFolderIndex].lessons.splice(idx, 1);
+        saveData(); renderLessons();
+      }
+    }
+    window.deleteLesson = deleteLesson;
+
+    function backToFolders() {
+      saveCurrentLesson();
       showPage('foldersPage');
+    }
+    window.backToFolders = backToFolders;
 
-      // تكبير وتصغير الصفحة
-      let scale = 1;
-      document.addEventListener('wheel', (event) => {
-        if (event.ctrlKey) {
-          event.preventDefault();
-          scale += event.deltaY * -0.001;
-          scale = Math.min(Math.max(0.5, scale), 2); // تحديد نطاق التكبير
-          document.body.style.transform = `scale(${scale})`;
-          document.body.style.transformOrigin = '0 0';
-        }
-      });
+    function backToLessons() {
+      saveCurrentLesson();
+      showPage('lessonsPage');
+    }
+    window.backToLessons = backToLessons;
+
+    function saveCurrentLesson() {
+      if (currentLessonIndex !== null) {
+        folders[currentFolderIndex].lessons[currentLessonIndex].content =
+          document.getElementById('editor').innerHTML;
+        saveData();
+      }
+    }
+
+    // محرر النص
+    function insertAtCursor(html) {
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
+      const el = document.createElement('div');
+      el.innerHTML = html;
+      const frag = document.createDocumentFragment();
+      while (el.firstChild) frag.appendChild(el.firstChild);
+      range.deleteContents();
+      range.insertNode(frag);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+    window.insertAtCursor = insertAtCursor;
+
+    // تغيير اللون المباشر
+    document.getElementById('colorPicker').addEventListener('input', e => {
+      const color = e.target.value;
+      document.execCommand('styleWithCSS', false, true);
+      document.execCommand('foreColor', false, color);
+    });
+
+    // إدراج الصور مع تكبير مطوّل
+    const imageInput = document.getElementById('imageInput');
+    imageInput.addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = document.createElement('img');
+        img.src = reader.result;
+        img.style.maxWidth = '150px';
+        img.style.cursor = 'pointer';
+        img.addEventListener('click', () => {
+          const overlay = document.createElement('div');
+          overlay.className = 'fullscreen-overlay';
+          overlay.innerHTML = `
+            <img src="${img.src}">
+            <button class="close-btn" onclick="this.parentElement.remove()">إغلاق</button>
+          `;
+          document.body.appendChild(overlay);
+        });
+        insertAtCursor(img.outerHTML);
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    });
+
+    // إدراج مقطع صوتي
+    const audioInput = document.getElementById('audioInput');
+    audioInput.addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const audioContainer = document.createElement('div');
+        audioContainer.className = 'audio-container';
+        const audio = document.createElement('audio');
+        audio.controls = true;
+        audio.src = reader.result;
+
+        const moveButton = document.createElement('button');
+        moveButton.className = 'move-audio';
+        moveButton.innerHTML = '🔄';
+        moveButton.onclick = () => {
+          // منطق لتحريك المقطع في المحرر
+          alert('يمكنك الآن تحريك المقطع في المحرر.');
+        };
+
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'delete-audio';
+        deleteButton.innerHTML = '🗑️';
+        deleteButton.onclick = () => {
+          audioContainer.remove();
+        };
+
+        audioContainer.appendChild(audio);
+        audioContainer.appendChild(moveButton);
+        audioContainer.appendChild(deleteButton);
+        document.getElementById('editor').appendChild(audioContainer);
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    });
+
+    // البحث وتظليل
+    document.getElementById('searchBox').addEventListener('input', e => {
+      const term = e.target.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const editor = document.getElementById('editor');
+      let html = editor.innerHTML.replace(/<mark>|<\/mark>/gi, '');
+      if (term) {
+        html = html.replace(new RegExp(term, 'gi'), m => `<mark>${m}</mark>`);
+      }
+      editor.innerHTML = html;
+    });
+
+    // فقرة جديدة عند النقر
+    document.getElementById('editor').addEventListener('click', e => {
+      const div = document.createElement('div');
+      div.className = 'editable-paragraph';
+      div.contentEditable = 'true';
+      div.style.color = currentColor;
+      document.getElementById('editor').appendChild(div);
+      div.focus();
+    });
+
+    // بدء التطبيق
+    loadFolders();
+    showPage('foldersPage');
+
+    // تكبير وتصغير الصفحة
+    let scale = 1;
+    document.addEventListener('wheel', (event) => {
+      if (event.ctrlKey) {
+        event.preventDefault();
+        scale += event.deltaY * -0.001;
+        scale = Math.min(Math.max(0.5, scale), 2); // تحديد نطاق التكبير
+        document.body.style.transform = `scale(${scale})`;
+        document.body.style.transformOrigin = '0 0';
+      }
     });
   </script>
 </body>
