@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>كشكولي</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --primary-color: #2a9d8f;
@@ -15,6 +15,8 @@
       --light-text: #f8f9fa;
       --border-radius: 8px;
       --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      --header-height: 60px;
+      --toolbar-height: 50px;
     }
 
     * {
@@ -36,13 +38,16 @@
     header {
       background: var(--primary-color);
       color: white;
-      padding: 0.75rem;
+      padding: 1rem;
       text-align: center;
       font-size: 1.25rem;
       font-weight: 700;
       box-shadow: var(--box-shadow);
-      z-index: 100;
-      flex-shrink: 0;
+      height: var(--header-height);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
     }
 
     main {
@@ -50,6 +55,7 @@
       display: flex;
       overflow: hidden;
       position: relative;
+      margin-top: var(--header-height);
     }
 
     section {
@@ -58,39 +64,41 @@
       flex-direction: column;
       overflow: hidden;
       padding: 0;
+      background: var(--light-bg);
     }
 
     section.active {
       display: flex;
     }
 
-    /* صفحة المواد */
     #foldersPage {
-      padding: 1rem;
+      padding: 1rem 1rem calc(var(--header-height) + 1rem) 1rem;
     }
 
     .page-title {
-      font-size: 1.2rem;
-      margin-bottom: 1rem;
+      font-size: 1.3rem;
+      margin-bottom: 1.5rem;
       color: var(--secondary-color);
+      text-align: center;
     }
 
     .list-container {
       flex: 1;
       overflow-y: auto;
-      padding: 0.5rem 0;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
     }
 
     .list-item {
       background: white;
       border-radius: var(--border-radius);
-      padding: 0.75rem 1rem;
+      padding: 1rem;
       margin-bottom: 0.75rem;
       display: flex;
-      justify-content: space-between;
       align-items: center;
       box-shadow: var(--box-shadow);
       transition: transform 0.2s;
+      gap: 1rem;
     }
 
     .list-item:active {
@@ -100,6 +108,7 @@
     .item-title {
       flex: 1;
       font-weight: 500;
+      font-size: 1.1rem;
     }
 
     .item-actions {
@@ -110,10 +119,11 @@
     .action-btn {
       background: none;
       border: none;
-      font-size: 1rem;
+      font-size: 1.1rem;
       color: var(--secondary-color);
       opacity: 0.7;
       padding: 0.25rem;
+      line-height: 1;
     }
 
     .action-btn:hover {
@@ -128,42 +138,58 @@
       padding: 1rem;
       font-size: 1.1rem;
       width: calc(100% - 2rem);
-      margin: 0.5rem auto;
+      margin: 0 auto 1rem;
       box-shadow: var(--box-shadow);
       position: fixed;
       bottom: 1rem;
       left: 1rem;
       right: 1rem;
       z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
     }
 
     .back-btn {
       background: none;
       border: none;
-      font-size: 1.2rem;
+      font-size: 1.5rem;
       padding: 0.5rem;
       color: var(--secondary-color);
-      align-self: flex-start;
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
     }
 
-    /* صفحة المحرر */
+    #lessonsPage {
+      padding-bottom: calc(var(--header-height) + 2rem);
+    }
+
     #editorPage {
-      padding: 0;
+      padding-top: var(--toolbar-height);
     }
 
     .editor-header {
+      background: white;
+      padding: 1rem;
       display: flex;
       align-items: center;
-      padding: 0.5rem 1rem;
-      background: white;
-      border-bottom: 1px solid #eee;
+      justify-content: center;
+      position: fixed;
+      top: var(--header-height);
+      left: 0;
+      right: 0;
+      z-index: 100;
+      box-shadow: var(--box-shadow);
+      height: var(--toolbar-height);
     }
 
     .editor-title {
-      flex: 1;
-      text-align: center;
       font-weight: 500;
       font-size: 1.1rem;
+      color: var(--secondary-color);
     }
 
     .editor-toolbar {
@@ -172,19 +198,24 @@
       gap: 0.5rem;
       padding: 0.75rem;
       background: white;
-      border-bottom: 1px solid #eee;
       position: sticky;
-      top: 0;
-      z-index: 10;
+      top: calc(var(--header-height) + var(--toolbar-height));
+      z-index: 50;
+      box-shadow: var(--box-shadow);
     }
 
     .toolbar-btn {
       background: #f0f0f0;
+      color: var(--dark-text);
       border: none;
       border-radius: 4px;
-      padding: 0.5rem;
+      padding: 0.5rem 0.8rem;
       font-size: 0.9rem;
       min-width: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
     }
 
     .toolbar-btn.active {
@@ -194,57 +225,55 @@
 
     .editor-content {
       flex: 1;
-      padding: 1rem;
+      padding: 1.5rem;
       overflow-y: auto;
       background: white;
+      margin: 1rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
     }
 
-    .editable {
-      min-height: 1.5em;
-      margin-bottom: 1rem;
-      outline: none;
-    }
-
-    /* عناصر المحرر المخصصة */
     .title-box {
       background: #e3f2fd;
-      border-left: 4px solid var(--primary-color);
-      padding: 0.75rem;
-      margin: 1rem 0;
+      border-right: 4px solid var(--primary-color);
+      padding: 1rem;
+      margin: 1.5rem 0;
       font-weight: 500;
-      font-size: 1.2rem;
+      font-size: 1.3rem;
+      border-radius: var(--border-radius);
     }
 
     .question-box {
       background: #fff8e1;
-      border-left: 4px solid #ffb300;
-      padding: 0.75rem;
-      margin: 1rem 0;
+      border-right: 4px solid #ffb300;
+      padding: 1rem;
+      margin: 1.5rem 0;
       font-weight: 500;
+      border-radius: var(--border-radius);
     }
 
     .answer-box {
       background: #e8f5e9;
-      border-left: 4px solid #4caf50;
-      padding: 0.75rem;
-      margin: 1rem 0;
+      border-right: 4px solid #4caf50;
+      padding: 1rem;
+      margin: 1.5rem 0;
+      border-radius: var(--border-radius);
     }
 
-    /* مشغل الصوت المخصص */
     .audio-player {
       width: 100%;
-      margin: 1.5rem 0;
+      margin: 2rem 0;
       background: #f5f5f5;
       border-radius: var(--border-radius);
-      padding: 1rem;
+      padding: 1.5rem;
       position: relative;
     }
 
     .audio-controls {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.75rem;
+      gap: 1rem;
+      margin-bottom: 1rem;
     }
 
     .audio-btn {
@@ -252,19 +281,20 @@
       color: white;
       border: none;
       border-radius: 50%;
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 1.2rem;
     }
 
     .progress-container {
       width: 100%;
-      height: 6px;
+      height: 8px;
       background: #ddd;
-      border-radius: 3px;
-      margin-top: 0.5rem;
+      border-radius: 4px;
+      margin-top: 1rem;
       position: relative;
       cursor: pointer;
     }
@@ -272,16 +302,17 @@
     .progress-bar {
       height: 100%;
       background: var(--primary-color);
-      border-radius: 3px;
+      border-radius: 4px;
       width: 0%;
+      transition: width 0.1s linear;
     }
 
     .time-display {
       display: flex;
       justify-content: space-between;
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       color: #666;
-      margin-top: 0.25rem;
+      margin-top: 0.5rem;
     }
 
     .audio-delete {
@@ -292,18 +323,18 @@
       color: white;
       border: none;
       border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      font-size: 0.7rem;
+      width: 30px;
+      height: 30px;
+      font-size: 0.9rem;
     }
 
-    /* عرض الصور */
     .content-image {
       max-width: 100%;
       height: auto;
       border-radius: var(--border-radius);
-      margin: 1rem 0;
+      margin: 1.5rem 0;
       cursor: zoom-in;
+      display: block;
     }
 
     .image-fullscreen {
@@ -316,23 +347,22 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 1000;
+      z-index: 2000;
     }
 
     .close-fullscreen {
       position: absolute;
-      top: 1rem;
-      left: 1rem;
+      top: 1.5rem;
+      left: 1.5rem;
       background: #ff4444;
       color: white;
       border: none;
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      font-size: 1rem;
+      width: 45px;
+      height: 45px;
+      font-size: 1.2rem;
     }
 
-    /* وضع القراءة */
     .read-mode-overlay {
       position: fixed;
       top: 0;
@@ -340,7 +370,7 @@
       right: 0;
       bottom: 0;
       background: white;
-      z-index: 2000;
+      z-index: 3000;
       overflow-y: auto;
       padding: 2rem;
     }
@@ -350,6 +380,7 @@
       margin: 0 auto;
       font-size: 1.2rem;
       line-height: 1.8;
+      padding: 2rem 0;
     }
 
     .read-mode-controls {
@@ -358,28 +389,41 @@
       left: 1rem;
       display: flex;
       gap: 1rem;
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.95);
       padding: 1rem;
       border-radius: var(--border-radius);
       box-shadow: var(--box-shadow);
-      z-index: 2001;
+      z-index: 3001;
     }
 
-    .read-mode-controls button {
-      background: var(--primary-color);
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    @media (max-height: 500px) {
-      .editor-toolbar {
-        position: static;
+    @media (max-width: 768px) {
+      :root {
+        --header-height: 50px;
+        --toolbar-height: 45px;
       }
-      .editor-content {
-        padding-bottom: 2rem;
+
+      .editor-toolbar {
+        gap: 0.3rem;
+        padding: 0.5rem;
+      }
+
+      .toolbar-btn {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
+      }
+
+      .list-item {
+        padding: 0.8rem;
+      }
+
+      .add-btn {
+        font-size: 1rem;
+        padding: 0.8rem;
+      }
+
+      .read-mode-content {
+        font-size: 1rem;
+        padding: 1rem;
       }
     }
   </style>
@@ -387,14 +431,12 @@
 <body>
   <header>كشكولي</header>
   <main>
-    <!-- صفحة المواد -->
     <section id="foldersPage" class="active">
       <h2 class="page-title">موادك الدراسية</h2>
       <div class="list-container" id="foldersList"></div>
       <button class="add-btn" onclick="addFolder()">+ إضافة مادة جديدة</button>
     </section>
 
-    <!-- صفحة الدروس -->
     <section id="lessonsPage">
       <div class="editor-header">
         <button class="back-btn" onclick="showPage('foldersPage')">←</button>
@@ -404,7 +446,6 @@
       <button class="add-btn" onclick="addLesson()">+ إضافة درس جديد</button>
     </section>
 
-    <!-- صفحة المحرر -->
     <section id="editorPage">
       <div class="editor-header">
         <button class="back-btn" onclick="backToLessons()">←</button>
@@ -422,13 +463,12 @@
         <button class="toolbar-btn" onclick="document.getElementById('imageInput').click()">صورة</button>
         <input type="file" id="audioInput" accept="audio/*" class="toolbar-btn" style="display: none;" onchange="insertAudio(this)">
         <button class="toolbar-btn" onclick="document.getElementById('audioInput').click()">صوت</button>
-        <button class="toolbar-btn" onclick="toggleReadMode()">📖 وضع القراءة</button>
+        <button class="toolbar-btn" onclick="toggleReadMode()">📖 قراءة</button>
       </div>
       <div class="editor-content" id="editor" contenteditable="true"></div>
     </section>
   </main>
 
-  <!-- وضع القراءة -->
   <div id="readModeContainer" class="read-mode-overlay" style="display: none;">
     <div class="read-mode-controls">
       <button onclick="adjustFontSize(1)">+ تكبير</button>
@@ -439,14 +479,12 @@
   </div>
 
   <script>
-    // إعداد قاعدة البيانات
     let db;
     let folders = [];
     let currentFolderId = null;
     let currentLessonId = null;
     let isDBReady = false;
 
-    // تهيئة قاعدة البيانات
     function initDB() {
       return new Promise((resolve, reject) => {
         const request = indexedDB.open('KashkooliDB', 2);
@@ -474,7 +512,6 @@
       });
     }
 
-    // تحميل البيانات من قاعدة البيانات
     async function loadData() {
       if (!isDBReady) await initDB();
       
@@ -496,7 +533,6 @@
       });
     }
 
-    // حفظ البيانات في قاعدة البيانات
     async function saveData() {
       if (!isDBReady) await initDB();
       
@@ -520,7 +556,6 @@
       });
     }
 
-    // حفظ ملف وسائط
     async function saveMediaFile(id, file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -534,7 +569,6 @@
       });
     }
 
-    // جلب ملف وسائط
     async function getMediaFile(id) {
       return new Promise((resolve, reject) => {
         const transaction = db.transaction(['media'], 'readonly');
@@ -551,7 +585,6 @@
       });
     }
 
-    // عرض المواد
     function renderFolders() {
       const foldersList = document.getElementById('foldersList');
       foldersList.innerHTML = '';
@@ -575,7 +608,6 @@
       });
     }
 
-    // إضافة مادة جديدة
     async function addFolder() {
       const name = prompt('أدخل اسم المادة:');
       if (!name) return;
@@ -592,7 +624,6 @@
       renderFolders();
     }
 
-    // فتح المادة
     function openFolder(folderId) {
       currentFolderId = folderId;
       const folder = folders.find(f => f.id === folderId);
@@ -602,7 +633,6 @@
       showPage('lessonsPage');
     }
 
-    // تعديل المادة
     async function editFolder(folderId, event) {
       event.stopPropagation();
       const folder = folders.find(f => f.id === folderId);
@@ -616,7 +646,6 @@
       renderFolders();
     }
 
-    // حذف المادة
     async function deleteFolder(folderId, event) {
       event.stopPropagation();
       if (!confirm('هل أنت متأكد من حذف هذه المادة وجميع دروسها؟')) return;
@@ -626,7 +655,6 @@
       renderFolders();
     }
 
-    // عرض الدروس
     function renderLessons(lessons) {
       const lessonsList = document.getElementById('lessonsList');
       lessonsList.innerHTML = '';
@@ -654,7 +682,6 @@
       });
     }
 
-    // إضافة درس جديد
     async function addLesson() {
       const name = prompt('أدخل اسم الدرس:');
       if (!name) return;
@@ -674,7 +701,6 @@
       renderLessons(folder.lessons);
     }
 
-    // فتح الدرس
     async function openLesson(lessonId) {
       currentLessonId = lessonId;
       const folder = folders.find(f => f.id === currentFolderId);
@@ -692,7 +718,6 @@
       setupEditorEvents();
     }
 
-    // تحميل الوسائط
     async function loadLessonMedia() {
       const mediaElements = document.querySelectorAll('[data-media-id]');
       for (const element of mediaElements) {
@@ -703,13 +728,11 @@
             element.src = mediaData;
           } else if (element.tagName === 'AUDIO') {
             element.src = mediaData;
-            setupAudioPlayer(element);
           }
         }
       }
     }
 
-    // تعديل الدرس
     async function editLesson(lessonId, event) {
       event.stopPropagation();
       const folder = folders.find(f => f.id === currentFolderId);
@@ -726,7 +749,6 @@
       renderLessons(folder.lessons);
     }
 
-    // حذف الدرس
     async function deleteLesson(lessonId, event) {
       event.stopPropagation();
       if (!confirm('هل أنت متأكد من حذف هذا الدرس؟')) return;
@@ -739,13 +761,11 @@
       renderLessons(folder.lessons);
     }
 
-    // العودة للدروس
     async function backToLessons() {
       await saveCurrentLesson();
       showPage('lessonsPage');
     }
 
-    // حفظ الدرس
     async function saveCurrentLesson() {
       if (!currentFolderId || !currentLessonId) return;
       
@@ -761,7 +781,6 @@
       await saveData();
     }
 
-    // إظهار الصفحات
     function showPage(pageId) {
       document.querySelectorAll('section').forEach(section => {
         section.classList.remove('active');
@@ -771,12 +790,10 @@
       document.getElementById(pageId).style.display = 'flex';
     }
 
-    // توليد ID
     function generateId() {
       return Date.now().toString(36) + Math.random().toString(36).substring(2);
     }
 
-    // إدراج محتوى
     function insertAtCursor(html) {
       const selection = window.getSelection();
       if (!selection.rangeCount) return;
@@ -805,18 +822,15 @@
       }
     }
 
-    // تنسيق النص
     function formatText(command, value = null) {
       document.execCommand(command, false, value);
       document.getElementById('editor').focus();
     }
 
-    // تغيير اللون
     function changeTextColor(color) {
       formatText('foreColor', color);
     }
 
-    // إدراج صورة
     async function insertImage(input) {
       const file = input.files[0];
       if (!file) return;
@@ -838,7 +852,6 @@
       input.value = '';
     }
 
-    // عرض الصورة كاملة
     function showFullscreenImage(event) {
       const imgSrc = event.target.src;
       
@@ -852,7 +865,6 @@
       document.body.appendChild(overlay);
     }
 
-    // إدراج صوت
     async function insertAudio(input) {
       const file = input.files[0];
       if (!file) return;
@@ -893,7 +905,6 @@
       input.value = '';
     }
 
-    // التحكم بالصوت
     function togglePlayPause(audioId) {
       const audio = document.getElementById(audioId);
       const btn = document.querySelector(`#${audioId}`).parentElement.querySelector('.play-pause-btn');
@@ -941,7 +952,6 @@
       }
     }
 
-    // أحداث المحرر
     function setupEditorEvents() {
       const editor = document.getElementById('editor');
       
@@ -958,7 +968,6 @@
       setInterval(saveCurrentLesson, 5000);
     }
 
-    // تفعيل الوضع القرائي
     function toggleReadMode() {
       const container = document.getElementById('readModeContainer');
       const isVisible = container.style.display === 'block';
@@ -997,7 +1006,6 @@
       content.style.fontSize = (currentSize + change) + 'px';
     }
 
-    // تهيئة التطبيق
     window.addEventListener('DOMContentLoaded', async () => {
       await initDB();
       await loadData();
