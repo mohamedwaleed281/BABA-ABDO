@@ -231,6 +231,7 @@
       margin: 1rem;
       border-radius: var(--border-radius);
       box-shadow: var(--box-shadow);
+      margin-top: 60px; /* منع التداخل مع الأدوات */
     }
 
     .title-box {
@@ -267,6 +268,15 @@
       border-radius: var(--border-radius);
       padding: 1.5rem;
       position: relative;
+    }
+
+    .audio-label {
+      display: block;
+      margin-bottom: 1rem;
+      font-weight: 500;
+      color: var(--secondary-color);
+      padding: 0.5rem;
+      border-bottom: 2px solid var(--primary-color);
     }
 
     .audio-controls {
@@ -381,6 +391,8 @@
       font-size: 1.2rem;
       line-height: 1.8;
       padding: 2rem 0;
+      transform-origin: top center;
+      transition: transform 0.3s;
     }
 
     .read-mode-controls {
@@ -426,6 +438,31 @@
         padding: 1rem;
       }
     }
+
+    /* تحسينات جديدة */
+    .free-cursor {
+      cursor: text !important;
+    }
+
+    .zoomable-image {
+      max-width: 90vw;
+      max-height: 90vh;
+      transition: transform 0.3s;
+      transform-origin: center center;
+    }
+
+    .image-zoom-controls {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      padding: 10px;
+      border-radius: 20px;
+      display: flex;
+      gap: 10px;
+      z-index: 4000;
+    }
   </style>
 </head>
 <body>
@@ -464,6 +501,7 @@
         <input type="file" id="audioInput" accept="audio/*" class="toolbar-btn" style="display: none;" onchange="insertAudio(this)">
         <button class="toolbar-btn" onclick="document.getElementById('audioInput').click()">صوت</button>
         <button class="toolbar-btn" onclick="toggleReadMode()">📖 قراءة</button>
+        <button class="toolbar-btn" onclick="enableFreeCursor()">✎ تحريك المؤشر</button>
       </div>
       <div class="editor-content" id="editor" contenteditable="true"></div>
     </section>
@@ -484,8 +522,59 @@
     let currentFolderId = null;
     let currentLessonId = null;
     let isDBReady = false;
+    let currentZoom = 1;
 
-    function initDB() {
+    // نظام إدارة الملفات
+    class FileSystemManager {
+      constructor() {
+        this.mediaHandles = new Map();
+      }
+
+      async saveFile(file) {
+        try {
+          if (!window.showSaveFilePicker) return this.saveFallback(file);
+          
+          const handle = await window.showSaveFilePicker({
+            suggestedName: file.name,
+            types: [{
+              description: 'Media Files',
+              accept: { [file.type]: [file.name.split('.').pop()] }
+            }]
+          });
+          
+          const writable = await handle.createWritable();
+          await writable.write(file);
+          await writable.close();
+          
+          this.mediaHandles.set(handle.id, handle);
+          return handle.id;
+        } catch (error) {
+          console.error('Error saving file:', error);
+          throw error;
+        }
+      }
+
+      async getFileUrl(id) {
+        const handle = this.mediaHandles.get(id);
+        const file = await handle.getFile();
+        return URL.createObjectURL(file);
+      }
+
+      saveFallback(file) {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            localStorage.setItem(file.name, reader.result);
+            resolve();
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+    }
+
+    const fileManager = new FileSystemManager();
+
+    async function initDB() {
       return new Promise((resolve, reject) => {
         const request = indexedDB.open('KashkooliDB', 2);
         
@@ -493,9 +582,6 @@
           const db = event.target.result;
           if (!db.objectStoreNames.contains('folders')) {
             db.createObjectStore('folders', { keyPath: 'id' });
-          }
-          if (!db.objectStoreNames.contains('media')) {
-            db.createObjectStore('media', { keyPath: 'id' });
           }
         };
         
@@ -551,35 +637,6 @@
         
         clearRequest.onerror = (event) => {
           console.error('فشل حفظ البيانات:', event.target.error);
-          reject(event.target.error);
-        };
-      });
-    }
-
-    async function saveMediaFile(id, file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const transaction = db.transaction(['media'], 'readwrite');
-          const store = transaction.objectStore('media');
-          store.put({ id, data: event.target.result });
-          resolve();
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-
-    async function getMediaFile(id) {
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['media'], 'readonly');
-        const store = transaction.objectStore('media');
-        const request = store.get(id);
-        
-        request.onsuccess = (event) => {
-          resolve(event.target.result?.data);
-        };
-        
-        request.onerror = (event) => {
           reject(event.target.error);
         };
       });
@@ -722,13 +779,15 @@
       const mediaElements = document.querySelectorAll('[data-media-id]');
       for (const element of mediaElements) {
         const mediaId = element.getAttribute('data-media-id');
-        const mediaData = await getMediaFile(mediaId);
-        if (mediaData) {
+        try {
+          const mediaUrl = await fileManager.getFileUrl(mediaId);
           if (element.tagName === 'IMG') {
-            element.src = mediaData;
+            element.src = mediaUrl;
           } else if (element.tagName === 'AUDIO') {
-            element.src = mediaData;
+            element.src = mediaUrl;
           }
+        } catch (error) {
+          console.error('Error loading media:', error);
         }
       }
     }
@@ -835,17 +894,15 @@
       const file = input.files[0];
       if (!file) return;
       
-      const mediaId = generateId();
-      await saveMediaFile(mediaId, file);
+      const mediaId = await fileManager.saveFile(file);
+      const img = document.createElement('img');
+      img.className = 'content-image';
+      img.setAttribute('data-media-id', mediaId);
+      img.onclick = showFullscreenImage;
       
       const reader = new FileReader();
       reader.onload = (event) => {
-        const img = document.createElement('img');
-        img.className = 'content-image';
         img.src = event.target.result;
-        img.setAttribute('data-media-id', mediaId);
-        img.onclick = showFullscreenImage;
-        
         insertAtCursor(img.outerHTML);
       };
       reader.readAsDataURL(file);
@@ -858,152 +915,152 @@
       const overlay = document.createElement('div');
       overlay.className = 'image-fullscreen';
       overlay.innerHTML = `
-        <img src="${imgSrc}">
-        <button class="close-fullscreen" onclick="this.parentElement.remove()">✕</button>
+        <img src="${imgSrc}" class="zoomable-image">
+        <div class="image-zoom-controls">
+          <button onclick="adjustImageZoom(1.2)">+</button>
+          <button onclick="adjustImageZoom(0.8)">-</button>
+          <button onclick="this.parentElement.parentElement.remove()">✕</button>
+        </div>
       `;
-      
       document.body.appendChild(overlay);
+    }
+
+    function adjustImageZoom(factor) {
+      currentZoom *= factor;
+      document.querySelector('.zoomable-image').style.transform = `scale(${currentZoom})`;
     }
 
     async function insertAudio(input) {
       const file = input.files[0];
       if (!file) return;
-      
-      const mediaId = generateId();
-      await saveMediaFile(mediaId, file);
-      
-      const audioContainer = document.createElement('div');
-      audioContainer.className = 'audio-player';
-      
-      const audioId = `audio-${mediaId}`;
-      audioContainer.innerHTML = `
-        <button class="audio-delete" onclick="deleteAudioElement(this.parentElement)">✕</button>
-        <div class="audio-controls">
-          <button class="audio-btn" onclick="skipAudio('${audioId}', -10)">-10</button>
-          <button class="audio-btn play-pause-btn" onclick="togglePlayPause('${audioId}')">▶</button>
-          <button class="audio-btn" onclick="skipAudio('${audioId}', 10)">+10</button>
-        </div>
-        <div class="progress-container" onclick="seekAudio(event, '${audioId}')">
-          <div class="progress-bar" id="progress-${audioId}"></div>
-        </div>
-        <div class="time-display">
-          <span id="current-time-${audioId}">0:00</span>
-          <span id="duration-${audioId}">0:00</span>
-        </div>
-        <audio id="${audioId}" data-media-id="${mediaId}" ontimeupdate="updateAudioProgress('${audioId}')"></audio>
-      `;
-      
-      document.getElementById('editor').appendChild(audioContainer);
-      
-      const audioElement = document.getElementById(audioId);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        audioElement.src = event.target.result;
-      };
-      reader.readAsDataURL(file);
-      
+
+      try {
+        showProgress('جاري رفع الملف الصوتي...');
+        const fileName = prompt('أدخل اسم الملف الصوتي:', file.name);
+        const mediaId = await fileManager.saveFile(file);
+        const audioUrl = await fileManager.getFileUrl(mediaId);
+        
+        const audioHTML = `
+          <div class="audio-player" data-media-id="${mediaId}">
+            <button class="audio-delete" onclick="this.parentElement.remove()">✕</button>
+            <label class="audio-label" contenteditable="true">${fileName}</label>
+            <div class="audio-controls">
+              <button class="audio-btn" onclick="skipAudio(this.parentElement.parentElement, -10)">-10</button>
+              <button class="audio-btn" onclick="togglePlayPause(this.parentElement.parentElement)">▶</button>
+              <button class="audio-btn" onclick="skipAudio(this.parentElement.parentElement, 10)">+10</button>
+            </div>
+            <div class="progress-container" onclick="seekAudio(event, this.parentElement)">
+              <div class="progress-bar"></div>
+            </div>
+            <div class="time-display">
+              <span class="current-time">0:00</span>
+              <span class="duration">0:00</span>
+            </div>
+            <audio src="${audioUrl}" ontimeupdate="updateAudioProgress(this.parentElement)"></audio>
+          </div>
+        `;
+        
+        document.getElementById('editor').insertAdjacentHTML('beforeend', audioHTML);
+      } catch (error) {
+        alert(`خطأ في رفع الملف: ${error.message}`);
+      } finally {
+        hideProgress();
+      }
       input.value = '';
     }
 
-    function togglePlayPause(audioId) {
-      const audio = document.getElementById(audioId);
-      const btn = document.querySelector(`#${audioId}`).parentElement.querySelector('.play-pause-btn');
+    function togglePlayPause(audioContainer) {
+      const audio = audioContainer.querySelector('audio');
+      const playBtn = audioContainer.querySelector('.audio-btn:nth-of-type(2)');
       
       if (audio.paused) {
         audio.play();
-        btn.innerHTML = '❚❚';
+        playBtn.textContent = '❚❚';
       } else {
         audio.pause();
-        btn.innerHTML = '▶';
+        playBtn.textContent = '▶';
       }
     }
 
-    function skipAudio(audioId, seconds) {
-      const audio = document.getElementById(audioId);
+    function skipAudio(audioContainer, seconds) {
+      const audio = audioContainer.querySelector('audio');
       audio.currentTime += seconds;
     }
 
-    function seekAudio(event, audioId) {
-      const audio = document.getElementById(audioId);
-      const progressContainer = event.currentTarget;
+    function seekAudio(event, audioContainer) {
+      const audio = audioContainer.querySelector('audio');
+      const progressContainer = audioContainer.querySelector('.progress-container');
       const rect = progressContainer.getBoundingClientRect();
       const percent = (event.clientX - rect.left) / rect.width;
       audio.currentTime = percent * audio.duration;
     }
 
-    function updateAudioProgress(audioId) {
-      const audio = document.getElementById(audioId);
-      const progress = (audio.currentTime / audio.duration) * 100;
-      document.getElementById(`progress-${audioId}`).style.width = `${progress}%`;
+    function updateAudioProgress(audioContainer) {
+      const audio = audioContainer.querySelector('audio');
+      const progressBar = audioContainer.querySelector('.progress-bar');
+      const currentTime = audioContainer.querySelector('.current-time');
+      const duration = audioContainer.querySelector('.duration');
       
-      document.getElementById(`current-time-${audioId}`).textContent = formatTime(audio.currentTime);
-      document.getElementById(`duration-${audioId}`).textContent = formatTime(audio.duration);
+      const progress = (audio.currentTime / audio.duration) * 100;
+      progressBar.style.width = `${progress}%`;
+      
+      currentTime.textContent = formatTime(audio.currentTime);
+      duration.textContent = formatTime(audio.duration);
     }
 
     function formatTime(seconds) {
       const mins = Math.floor(seconds / 60);
       const secs = Math.floor(seconds % 60);
-      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-    }
-
-    function deleteAudioElement(element) {
-      if (confirm('هل تريد حذف هذا الملف الصوتي؟')) {
-        element.remove();
-      }
-    }
-
-    function setupEditorEvents() {
-      const editor = document.getElementById('editor');
-      
-      editor.addEventListener('click', (e) => {
-        if (e.target === editor) {
-          const paragraph = document.createElement('div');
-          paragraph.className = 'editable';
-          paragraph.contentEditable = 'true';
-          editor.appendChild(paragraph);
-          paragraph.focus();
-        }
-      });
-      
-      setInterval(saveCurrentLesson, 5000);
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
     }
 
     function toggleReadMode() {
       const container = document.getElementById('readModeContainer');
-      const isVisible = container.style.display === 'block';
-      
-      if (!isVisible) {
-        const editorContent = document.getElementById('editor').cloneNode(true);
-        cleanContentForReadMode(editorContent);
+      if (container.style.display === 'none') {
+        const content = document.getElementById('editor').cloneNode(true);
+        content.querySelectorAll('[contenteditable], button').forEach(el => el.remove());
         document.getElementById('readModeContent').innerHTML = '';
-        document.getElementById('readModeContent').appendChild(editorContent);
-        
-        document.getElementById('readModeContent').querySelectorAll('[contenteditable]').forEach(el => {
-          el.contentEditable = false;
-        });
-        
+        document.getElementById('readModeContent').appendChild(content);
         container.style.display = 'block';
       } else {
         container.style.display = 'none';
       }
     }
 
-    function cleanContentForReadMode(content) {
-      content.querySelectorAll('.audio-delete, .action-btn').forEach(el => el.remove());
+    function adjustFontSize(change) {
+      const content = document.getElementById('readModeContent');
+      currentZoom *= change === 1 ? 1.1 : 0.9;
+      content.style.transform = `scale(${currentZoom})`;
+    }
+
+    function enableFreeCursor() {
+      document.getElementById('editor').classList.toggle('free-cursor');
+    }
+
+    function setupEditorEvents() {
+      const editor = document.getElementById('editor');
+      let saveTimer;
       
-      content.querySelectorAll('audio').forEach(audio => {
-        audio.controls = true;
-      });
-      
-      content.querySelectorAll('img').forEach(img => {
-        img.onclick = showFullscreenImage;
+      editor.addEventListener('input', () => {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => {
+          saveCurrentLesson();
+        }, 1000);
       });
     }
 
-    function adjustFontSize(change) {
-      const content = document.getElementById('readModeContent');
-      const currentSize = parseInt(window.getComputedStyle(content).fontSize) || 16;
-      content.style.fontSize = (currentSize + change) + 'px';
+    function showProgress(message) {
+      const progress = document.createElement('div');
+      progress.id = 'global-progress';
+      progress.innerHTML = `
+        <div class="progress-bar"></div>
+        <div class="progress-text">${message}</div>
+      `;
+      document.body.appendChild(progress);
+    }
+
+    function hideProgress() {
+      document.getElementById('global-progress')?.remove();
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
