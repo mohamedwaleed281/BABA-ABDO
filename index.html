@@ -1,713 +1,441 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>كشكولي</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --primary-color: #2a9d8f;
-      --secondary-color: #264653;
-      --accent-color: #e9c46a;
-      --light-bg: #f8f9fa;
-      --dark-text: #212529;
-      --light-text: #f8f9fa;
-      --border-radius: 8px;
-      --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      --header-height: 60px;
-      --toolbar-height: 50px;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>كشكولي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet>
+    <style>
+        :root {
+            --primary-color: #2a9d8f;
+            --secondary-color: #264653;
+            --accent-color: #e9c46a;
+            --light-bg: #f8f9fa;
+            --dark-text: #212529;
+            --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            --header-height: 60px;
+            --toolbar-height: 50px;
+        }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    body {
-      font-family: 'Tajawal', sans-serif;
-      background: var(--light-bg);
-      color: var(--dark-text);
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: var(--light-bg);
+            color: var(--dark-text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
-    header {
-      background: var(--primary-color);
-      color: white;
-      padding: 1rem;
-      text-align: center;
-      font-size: 1.25rem;
-      font-weight: 700;
-      box-shadow: var(--box-shadow);
-      height: var(--header-height);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
+        header {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            box-shadow: var(--box-shadow);
+            height: var(--header-height);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
 
-    main {
-      flex: 1;
-      display: flex;
-      overflow: hidden;
-      position: relative;
-      margin-top: var(--header-height);
-    }
+        main {
+            margin-top: var(--header-height);
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
 
-    section {
-      flex: 1;
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
-      padding: 0;
-      background: var(--light-bg);
-    }
+        section {
+            display: none;
+        }
 
-    section.active {
-      display: flex;
-    }
+        section.active {
+            display: block;
+        }
 
-    #foldersPage {
-      padding: 1rem 1rem calc(var(--header-height) + 1rem) 1rem;
-    }
+        .list-container {
+            margin: 1rem 0;
+            padding: 0.5rem;
+        }
 
-    .page-title {
-      font-size: 1.3rem;
-      margin-bottom: 1.5rem;
-      color: var(--secondary-color);
-      text-align: center;
-    }
+        .list-item {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            box-shadow: var(--box-shadow);
+            gap: 1rem;
+        }
 
-    .list-container {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0.5rem;
-      margin-bottom: 1rem;
-    }
+        .item-title {
+            flex: 1;
+            font-weight: 500;
+        }
 
-    .list-item {
-      background: white;
-      border-radius: var(--border-radius);
-      padding: 1rem;
-      margin-bottom: 0.75rem;
-      display: flex;
-      align-items: center;
-      box-shadow: var(--box-shadow);
-      transition: transform 0.2s;
-      gap: 1rem;
-    }
+        .item-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
 
-    .list-item:active {
-      transform: scale(0.98);
-    }
+        .add-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 1rem;
+            width: 100%;
+            margin: 1rem 0;
+        }
 
-    .item-title {
-      flex: 1;
-      font-weight: 500;
-      font-size: 1.1rem;
-    }
+        .editor-toolbar {
+            position: sticky;
+            top: var(--header-height);
+            background: white;
+            padding: 0.5rem;
+            z-index: 900;
+            box-shadow: var(--box-shadow);
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
 
-    .item-actions {
-      display: flex;
-      gap: 0.5rem;
-    }
+        .toolbar-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 4px;
+            min-width: 40px;
+        }
 
-    .action-btn {
-      background: none;
-      border: none;
-      font-size: 1.1rem;
-      color: var(--secondary-color);
-      opacity: 0.7;
-      padding: 0.25rem;
-      line-height: 1;
-    }
+        .editor-content {
+            padding: 1rem;
+            min-height: 70vh;
+        }
 
-    .action-btn:hover {
-      opacity: 1;
-    }
+        .audio-player {
+            background: #f5f5f5;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            position: relative;
+        }
 
-    .add-btn {
-      background: var(--primary-color);
-      color: white;
-      border: none;
-      border-radius: var(--border-radius);
-      padding: 1rem;
-      font-size: 1.1rem;
-      width: calc(100% - 2rem);
-      margin: 0 auto 1rem;
-      box-shadow: var(--box-shadow);
-      position: fixed;
-      bottom: 1rem;
-      left: 1rem;
-      right: 1rem;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-    }
+        .content-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
 
-    .back-btn {
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      padding: 0.5rem;
-      color: var(--secondary-color);
-      position: absolute;
-      right: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-    }
+        .read-mode-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            z-index: 2000;
+            padding: 2rem;
+            overflow-y: auto;
+        }
 
-    #lessonsPage {
-      padding-bottom: calc(var(--header-height) + 2rem);
-    }
-
-    #editorPage {
-      padding-top: var(--toolbar-height);
-    }
-
-    .editor-header {
-      background: white;
-      padding: 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: fixed;
-      top: var(--header-height);
-      left: 0;
-      right: 0;
-      z-index: 100;
-      box-shadow: var(--box-shadow);
-      height: var(--toolbar-height);
-    }
-
-    .editor-title {
-      font-weight: 500;
-      font-size: 1.1rem;
-      color: var(--secondary-color);
-    }
-
-    .editor-toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      padding: 0.75rem;
-      background: white;
-      position: sticky;
-      top: calc(var(--header-height) + var(--toolbar-height));
-      z-index: 50;
-      box-shadow: var(--box-shadow);
-    }
-
-    .toolbar-btn {
-      background: #f0f0f0;
-      color: var(--dark-text);
-      border: none;
-      border-radius: 4px;
-      padding: 0.5rem 0.8rem;
-      font-size: 0.9rem;
-      min-width: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.3rem;
-    }
-
-    .toolbar-btn.active {
-      background: var(--primary-color);
-      color: white;
-    }
-
-    .editor-content {
-      flex: 1;
-      padding: 1.5rem;
-      overflow-y: auto;
-      background: white;
-      margin: 1rem;
-      border-radius: var(--border-radius);
-      box-shadow: var(--box-shadow);
-    }
-
-    .title-box {
-      background: #e3f2fd;
-      border-right: 4px solid var(--primary-color);
-      padding: 1rem;
-      margin: 1.5rem 0;
-      font-weight: 500;
-      font-size: 1.3rem;
-      border-radius: var(--border-radius);
-    }
-
-    .question-box {
-      background: #fff8e1;
-      border-right: 4px solid #ffb300;
-      padding: 1rem;
-      margin: 1.5rem 0;
-      font-weight: 500;
-      border-radius: var(--border-radius);
-    }
-
-    .answer-box {
-      background: #e8f5e9;
-      border-right: 4px solid #4caf50;
-      padding: 1rem;
-      margin: 1.5rem 0;
-      border-radius: var(--border-radius);
-    }
-
-    .audio-player {
-      width: 100%;
-      margin: 2rem 0;
-      background: #f5f5f5;
-      border-radius: var(--border-radius);
-      padding: 1.5rem;
-      position: relative;
-    }
-
-    .audio-controls {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .audio-btn {
-      background: var(--primary-color);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-    }
-
-    .progress-container {
-      width: 100%;
-      height: 8px;
-      background: #ddd;
-      border-radius: 4px;
-      margin-top: 1rem;
-      position: relative;
-      cursor: pointer;
-    }
-
-    .progress-bar {
-      height: 100%;
-      background: var(--primary-color);
-      border-radius: 4px;
-      width: 0%;
-      transition: width 0.1s linear;
-    }
-
-    .time-display {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.9rem;
-      color: #666;
-      margin-top: 0.5rem;
-    }
-
-    .audio-delete {
-      position: absolute;
-      top: 0.5rem;
-      left: 0.5rem;
-      background: #ff4444;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      font-size: 0.9rem;
-    }
-
-    .content-image {
-      max-width: 100%;
-      height: auto;
-      border-radius: var(--border-radius);
-      margin: 1.5rem 0;
-      cursor: zoom-in;
-      display: block;
-    }
-
-    .image-fullscreen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.9);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-    }
-
-    .close-fullscreen {
-      position: absolute;
-      top: 1.5rem;
-      left: 1.5rem;
-      background: #ff4444;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 45px;
-      height: 45px;
-      font-size: 1.2rem;
-    }
-
-    .read-mode-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: white;
-      z-index: 3000;
-      overflow-y: auto;
-      padding: 2rem;
-    }
-
-    .read-mode-content {
-      max-width: 800px;
-      margin: 0 auto;
-      font-size: 1.2rem;
-      line-height: 1.8;
-      padding: 2rem 0;
-    }
-
-    .read-mode-controls {
-      position: fixed;
-      top: 1rem;
-      left: 1rem;
-      display: flex;
-      gap: 1rem;
-      background: rgba(255, 255, 255, 0.95);
-      padding: 1rem;
-      border-radius: var(--border-radius);
-      box-shadow: var(--box-shadow);
-      z-index: 3001;
-    }
-
-    @media (max-width: 768px) {
-      :root {
-        --header-height: 50px;
-        --toolbar-height: 45px;
-      }
-
-      .editor-toolbar {
-        gap: 0.3rem;
-        padding: 0.5rem;
-      }
-
-      .toolbar-btn {
-        padding: 0.4rem 0.6rem;
-        font-size: 0.8rem;
-      }
-
-      .list-item {
-        padding: 0.8rem;
-      }
-
-      .add-btn {
-        font-size: 1rem;
-        padding: 0.8rem;
-      }
-
-      .read-mode-content {
-        font-size: 1rem;
-        padding: 1rem;
-      }
-    }
-  </style>
+        .search-bar {
+            position: sticky;
+            top: 0;
+            background: white;
+            padding: 1rem;
+            z-index: 3000;
+        }
+    </style>
 </head>
 <body>
-  <header>كشكولي</header>
-  <main>
-    <section id="foldersPage" class="active">
-      <h2 class="page-title">موادك الدراسية</h2>
-      <div class="list-container" id="foldersList"></div>
-      <button class="add-btn" onclick="addFolder()">+ إضافة مادة جديدة</button>
-    </section>
-
-    <section id="lessonsPage">
-      <div class="editor-header">
-        <button class="back-btn" onclick="showPage('foldersPage')">←</button>
-        <div class="editor-title">الدروس</div>
-      </div>
-      <div class="list-container" id="lessonsList"></div>
-      <button class="add-btn" onclick="addLesson()">+ إضافة درس جديد</button>
-    </section>
-
-    <section id="editorPage">
-      <div class="editor-header">
-        <button class="back-btn" onclick="backToLessons()">←</button>
-        <div class="editor-title" id="lessonTitle"></div>
-      </div>
-      <div class="editor-toolbar">
-        <button class="toolbar-btn" onclick="insertAtCursor('<div class=&quot;title-box&quot; contenteditable=&quot;true&quot;>عنوان جديد</div>')">عنوان</button>
-        <button class="toolbar-btn" onclick="insertAtCursor('<div class=&quot;question-box&quot; contenteditable=&quot;true&quot;>سؤال جديد</div>')">سؤال</button>
-        <button class="toolbar-btn" onclick="insertAtCursor('<div class=&quot;answer-box&quot; contenteditable=&quot;true&quot;>إجابة جديدة</div>')">إجابة</button>
-        <button class="toolbar-btn" onclick="formatText('bold')">عريض</button>
-        <button class="toolbar-btn" onclick="formatText('italic')">مائل</button>
-        <button class="toolbar-btn" onclick="formatText('underline')">تحته خط</button>
-        <input type="color" id="colorPicker" class="toolbar-btn" title="لون النص" onchange="changeTextColor(this.value)">
-        <input type="file" id="imageInput" accept="image/*" class="toolbar-btn" style="display: none;" onchange="insertImage(this)">
-        <button class="toolbar-btn" onclick="document.getElementById('imageInput').click()">صورة</button>
-        <input type="file" id="audioInput" accept="audio/*" class="toolbar-btn" style="display: none;" onchange="insertAudio(this)">
-        <button class="toolbar-btn" onclick="document.getElementById('audioInput').click()">صوت</button>
-        <button class="toolbar-btn" onclick="toggleReadMode()">📖 قراءة</button>
-      </div>
-      <div class="editor-content" id="editor" contenteditable="true"></div>
-    </section>
-  </main>
-
-  <div id="readModeContainer" class="read-mode-overlay" style="display: none;">
-    <div class="read-mode-controls">
-      <button onclick="adjustFontSize(1)">+ تكبير</button>
-      <button onclick="adjustFontSize(-1)">- تصغير</button>
-      <button onclick="toggleReadMode()">✕ إغلاق</button>
-    </div>
-    <div class="read-mode-content" id="readModeContent"></div>
-  </div>
-</body>
-</html>
-<script>
-    let db;
-    let folders = [];
-    let currentFolderId = null;
-    let currentLessonId = null;
-    let isDBReady = false;
-    let currentSearchResults = [];
-    let currentSearchIndex = -1;
-
-    // نظام إدارة الملفات
-    class MediaManager {
-      constructor() {
-        this.mediaMap = new Map();
-      }
-
-      async saveMedia(file) {
-        return new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            const mediaId = Date.now().toString();
-            this.mediaMap.set(mediaId, reader.result);
-            resolve(mediaId);
-          };
-          reader.readAsDataURL(file);
-        });
-      }
-
-      getMedia(id) {
-        return this.mediaMap.get(id);
-      }
-    }
-
-    const mediaManager = new MediaManager();
-
-    // نظام البحث
-    function toggleSearch() {
-      const searchBar = document.querySelector('.search-bar');
-      searchBar.style.display = searchBar.style.display === 'none' ? 'block' : 'none';
-    }
-
-    function searchText() {
-      const query = document.getElementById('searchInput').value.toLowerCase();
-      const content = document.getElementById('editor').innerHTML;
-      const regex = new RegExp(query, 'gi');
-      currentSearchResults = [...content.matchAll(regex)];
-      currentSearchIndex = 0;
-      highlightMatches();
-    }
-
-    function highlightMatches() {
-      let content = document.getElementById('editor').innerHTML;
-      content = content.replace(/(<span class="highlight">|<\/span>)/g, '');
-      const highlighted = content.replace(
-        new RegExp(currentSearchResults[currentSearchIndex][0], 'gi'),
-        match => `<span class="highlight">${match}</span>`
-      );
-      document.getElementById('editor').innerHTML = highlighted;
-    }
-
-    function clearSearch() {
-      document.querySelector('.search-bar').style.display = 'none';
-      document.getElementById('searchInput').value = '';
-      document.getElementById('editor').innerHTML = 
-        document.getElementById('editor').innerHTML.replace(/<span class="highlight">|<\/span>/g, '');
-    }
-
-    // نظام المؤشر الحر
-    function enableFreeCursor() {
-      const editor = document.getElementById('editor');
-      editor.contentEditable = true;
-      editor.style.cursor = 'text';
-      editor.focus();
-    }
-
-    // نظام القراءة
-    function toggleReadMode() {
-      const container = document.getElementById('readModeContainer');
-      if (container.style.display === 'none') {
-        const content = document.getElementById('editor').cloneNode(true);
-        content.querySelectorAll('[contenteditable], button').forEach(el => el.remove());
-        document.getElementById('readModeContent').innerHTML = content.innerHTML;
-        container.style.display = 'block';
-      } else {
-        container.style.display = 'none';
-      }
-    }
-
-    function adjustFontSize(change) {
-      const content = document.getElementById('readModeContent');
-      const currentSize = parseInt(window.getComputedStyle(content).fontSize) || 16;
-      content.style.fontSize = (currentSize + change) + 'px';
-    }
-
-    // نظام الملفات
-    async function insertImage(input) {
-      const file = input.files[0];
-      if (!file) return;
-      
-      const mediaId = await mediaManager.saveMedia(file);
-      const img = document.createElement('img');
-      img.src = mediaManager.getMedia(mediaId);
-      img.className = 'content-image';
-      img.onclick = () => showFullscreenImage(img.src);
-      insertAtCursor(img.outerHTML);
-      input.value = '';
-    }
-
-    async function insertAudio(input) {
-      const file = input.files[0];
-      if (!file) return;
-      
-      const mediaId = await mediaManager.saveMedia(file);
-      const audioHTML = `
-        <div class="audio-player">
-          <button class="audio-delete" onclick="this.parentElement.remove()">✕</button>
-          <label class="audio-label" contenteditable="true">${file.name}</label>
-          <audio controls src="${mediaManager.getMedia(mediaId)}"></audio>
-        </div>
-      `;
-      insertAtCursor(audioHTML);
-      input.value = '';
-    }
-
-    // نظام العرض الكامل للصور
-    function showFullscreenImage(src) {
-      const overlay = document.createElement('div');
-      overlay.className = 'image-fullscreen';
-      overlay.innerHTML = `
-        <img src="${src}" class="zoomable-image">
-        <button class="close-fullscreen" onclick="this.parentElement.remove()">✕</button>
-      `;
-      document.body.appendChild(overlay);
-    }
-
-    // نظام قاعدة البيانات
-    async function initDB() {
-      return new Promise((resolve, reject) => {
-        const request = indexedDB.open('KashkooliDB', 3);
-        
-        request.onupgradeneeded = (event) => {
-          const db = event.target.result;
-          if (!db.objectStoreNames.contains('folders')) {
-            db.createObjectStore('folders', { keyPath: 'id' });
-          }
-        };
-        
-        request.onsuccess = (event) => {
-          db = event.target.result;
-          isDBReady = true;
-          resolve();
-        };
-        
-        request.onerror = (event) => {
-          console.error('فشل فتح قاعدة البيانات:', event.target.error);
-          reject(event.target.error);
-        };
-      });
-    }
-
-    async function loadData() {
-      if (!isDBReady) await initDB();
-      
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['folders'], 'readonly');
-        const store = transaction.objectStore('folders');
-        const request = store.getAll();
-        
-        request.onsuccess = (event) => {
-          folders = event.target.result || [];
-          renderFolders();
-          resolve();
-        };
-        
-        request.onerror = (event) => {
-          console.error('فشل تحميل البيانات:', event.target.error);
-          reject(event.target.error);
-        };
-      });
-    }
-
-    async function saveData() {
-      if (!isDBReady) await initDB();
-      
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['folders'], 'readwrite');
-        const store = transaction.objectStore('folders');
-        
-        const clearRequest = store.clear();
-        
-        clearRequest.onsuccess = () => {
-          folders.forEach(folder => {
-            store.put(folder);
-          });
-          resolve();
-        };
-        
-        clearRequest.onerror = (event) => {
-          console.error('فشل حفظ البيانات:', event.target.error);
-          reject(event.target.error);
-        };
-      });
-    }
-
-    // نظام الواجهة
-    function renderFolders() {
-      const foldersList = document.getElementById('foldersList');
-      foldersList.innerHTML = folders.length ? '' : '<p style="text-align: center; color: #666;">لا توجد مواد حتى الآن</p>';
-      
-      folders.forEach(folder => {
-        const folderItem = document.createElement('div');
-        folderItem.className = 'list-item';
-        folderItem.innerHTML = `
-          <div class="item-title" onclick="openFolder('${folder.id}')">${folder.name}</div>
-          <div class="item-actions">
-            <button class="action-btn" onclick="editFolder('${folder.id}', event)">✏️</button>
-            <button class="action-btn" onclick="deleteFolder('${folder.id}', event)">🗑️</button>
-          </div>
-        `;
-        foldersList.appendChild(folderItem);
-      });
-    }
-
-    // ... (جميع الدوال الأخرى الخاصة بإدارة المواد والدروس كما هي مع تعديلات بسيطة في التنسيق)
+    <header>كشكولي</header>
     
-    window.addEventListener('DOMContentLoaded', async () => {
-      await initDB();
-      await loadData();
-      showPage('foldersPage');
-    });
-  </script>
-  </body>
+    <!-- شريط البحث -->
+    <div class="search-bar" style="display: none;">
+        <input type="text" id="searchInput" placeholder="ابحث في النص...">
+        <button onclick="searchText()">بحث</button>
+        <button onclick="clearSearch()">إغلاق</button>
+    </div>
+
+    <main>
+        <!-- قسم المواد -->
+        <section id="foldersPage" class="active">
+            <h2>موادك الدراسية</h2>
+            <div class="list-container" id="foldersList"></div>
+            <button class="add-btn" onclick="addFolder()">+ إضافة مادة</button>
+        </section>
+
+        <!-- قسم الدروس -->
+        <section id="lessonsPage">
+            <div class="editor-toolbar">
+                <button onclick="showPage('foldersPage')">← الرجوع</button>
+                <h3>الدروس</h3>
+            </div>
+            <div class="list-container" id="lessonsList"></div>
+            <button class="add-btn" onclick="addLesson()">+ إضافة درس</button>
+        </section>
+
+        <!-- قسم المحرر -->
+        <section id="editorPage">
+            <div class="editor-toolbar">
+                <button onclick="backToLessons()">← الرجوع</button>
+                <h3 id="lessonTitle"></h3>
+                <button onclick="toggleSearch()">🔍 بحث</button>
+            </div>
+            
+            <div class="editor-toolbar">
+                <input type="file" id="imageInput" hidden accept="image/*">
+                <button onclick="document.getElementById('imageInput').click()">صورة</button>
+                <input type="file" id="audioInput" hidden accept="audio/*">
+                <button onclick="document.getElementById('audioInput').click()">صوت</button>
+                <button onclick="toggleReadMode()">قراءة</button>
+            </div>
+
+            <div class="editor-content" id="editor" contenteditable="true"></div>
+        </section>
+    </main>
+
+    <!-- وضع القراءة -->
+    <div class="read-mode-overlay" id="readMode" style="display: none;">
+        <div class="editor-toolbar">
+            <button onclick="toggleReadMode()">✕ إغلاق</button>
+            <button onclick="adjustFontSize(1)">+</button>
+            <button onclick="adjustFontSize(-1)">-</button>
+        </div>
+        <div id="readContent"></div>
+    </div>
+
+    <script>
+        // نظام التخزين
+        let db;
+        let folders = [];
+        let currentFolderId = null;
+        let currentLessonId = null;
+
+        class MediaManager {
+            constructor() {
+                this.media = new Map();
+            }
+
+            async saveFile(file) {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const id = Date.now().toString();
+                        this.media.set(id, reader.result);
+                        resolve(id);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            getFile(id) {
+                return this.media.get(id);
+            }
+        }
+
+        const mediaManager = new MediaManager();
+
+        // نظام البحث
+        function toggleSearch() {
+            document.querySelector('.search-bar').style.display = 
+                document.querySelector('.search-bar').style.display === 'none' ? 'block' : 'none';
+        }
+
+        function searchText() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const content = document.getElementById('editor').innerHTML;
+            const highlighted = content.replace(new RegExp(query, 'gi'), match => `<mark>${match}</mark>`);
+            document.getElementById('editor').innerHTML = highlighted;
+        }
+
+        function clearSearch() {
+            document.querySelector('.search-bar').style.display = 'none';
+            document.getElementById('editor').innerHTML = 
+                document.getElementById('editor').innerHTML.replace(/<mark>/g, '').replace(/<\/mark>/g, '');
+        }
+
+        // نظام الملفات
+        async function insertImage(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const id = await mediaManager.saveFile(file);
+            const img = `<img src="${mediaManager.getFile(id)}" class="content-image">`;
+            document.getElementById('editor').insertAdjacentHTML('beforeend', img);
+        }
+
+        async function insertAudio(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const id = await mediaManager.saveFile(file);
+            const audioHTML = `
+                <div class="audio-player">
+                    <audio controls src="${mediaManager.getFile(id)}"></audio>
+                    <button onclick="this.parentElement.remove()">حذف</button>
+                </div>
+            `;
+            document.getElementById('editor').insertAdjacentHTML('beforeend', audioHTML);
+        }
+
+        // نظام القراءة
+        function toggleReadMode() {
+            const readMode = document.getElementById('readMode');
+            if (readMode.style.display === 'none') {
+                document.getElementById('readContent').innerHTML = 
+                    document.getElementById('editor').innerHTML;
+                readMode.style.display = 'block';
+            } else {
+                readMode.style.display = 'none';
+            }
+        }
+
+        function adjustFontSize(change) {
+            const content = document.getElementById('readContent');
+            const currentSize = parseInt(window.getComputedStyle(content).fontSize) || 16;
+            content.style.fontSize = `${currentSize + change}px`;
+        }
+
+        // نظام المواد والدروس
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substring(2);
+        }
+
+        async function addFolder() {
+            const name = prompt('اسم المادة:');
+            if (!name) return;
+            
+            folders.push({
+                id: generateId(),
+                name: name.trim(),
+                lessons: []
+            });
+            await saveData();
+            renderFolders();
+        }
+
+        function renderFolders() {
+            const container = document.getElementById('foldersList');
+            container.innerHTML = folders.map(folder => `
+                <div class="list-item">
+                    <div class="item-title" onclick="openFolder('${folder.id}')">${folder.name}</div>
+                    <div class="item-actions">
+                        <button onclick="editFolder('${folder.id}')">✏️</button>
+                        <button onclick="deleteFolder('${folder.id}')">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function openFolder(folderId) {
+            currentFolderId = folderId;
+            const folder = folders.find(f => f.id === folderId);
+            renderLessons(folder.lessons);
+            showPage('lessonsPage');
+        }
+
+        async function addLesson() {
+            const name = prompt('اسم الدرس:');
+            if (!name) return;
+            
+            const folder = folders.find(f => f.id === currentFolderId);
+            folder.lessons.push({
+                id: generateId(),
+                name: name.trim(),
+                content: ''
+            });
+            await saveData();
+            renderLessons(folder.lessons);
+        }
+
+        function renderLessons(lessons) {
+            const container = document.getElementById('lessonsList');
+            container.innerHTML = lessons.map(lesson => `
+                <div class="list-item">
+                    <div class="item-title" onclick="openLesson('${lesson.id}')">${lesson.name}</div>
+                    <div class="item-actions">
+                        <button onclick="editLesson('${lesson.id}')">✏️</button>
+                        <button onclick="deleteLesson('${lesson.id}')">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function openLesson(lessonId) {
+            currentLessonId = lessonId;
+            const lesson = folders
+                .find(f => f.id === currentFolderId)
+                .lessons.find(l => l.id === lessonId);
+            
+            document.getElementById('lessonTitle').textContent = lesson.name;
+            document.getElementById('editor').innerHTML = lesson.content;
+            showPage('editorPage');
+        }
+
+        async function saveCurrentLesson() {
+            const lesson = folders
+                .find(f => f.id === currentFolderId)
+                .lessons.find(l => l.id === currentLessonId);
+            
+            lesson.content = document.getElementById('editor').innerHTML;
+            await saveData();
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        // نظام قاعدة البيانات
+        async function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('KashkooliDB', 1);
+                
+                request.onupgradeneeded = (event) => {
+                    db = event.target.result;
+                    db.createObjectStore('folders', { keyPath: 'id' });
+                };
+                
+                request.onsuccess = (event) => {
+                    db = event.target.result;
+                    loadData();
+                    resolve();
+                };
+            });
+        }
+
+        async function loadData() {
+            const transaction = db.transaction('folders', 'readonly');
+            const store = transaction.objectStore('folders');
+            folders = await new Promise(resolve => {
+                const request = store.getAll();
+                request.onsuccess = () => resolve(request.result || []);
+            });
+            renderFolders();
+        }
+
+        async function saveData() {
+            const transaction = db.transaction('folders', 'readwrite');
+            const store = transaction.objectStore('folders');
+            store.clear();
+            folders.forEach(folder => store.add(folder));
+        }
+
+        // التهيئة
+        window.addEventListener('DOMContentLoaded', initDB);
+    </script>
+</body>
 </html>
