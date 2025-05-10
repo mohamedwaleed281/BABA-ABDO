@@ -14,6 +14,31 @@
       direction: rtl;
     }
 
+    
+    header {
+      height: 60px; /* ارتفاع ثابت */
+      box-sizing: border-box; /* احتساب الحشو ضمن الارتفاع */
+    }
+    
+    .toolbar {
+      top: 60px; /* تحت العنوان مباشرة */
+      height: 50px; /* ارتفاع ثابت للأدوات */
+    }
+    
+    main {
+      margin-top: 110px; /* 60 (العنوان) + 50 (الأدوات) */
+    }
+
+    /* الباقي كما هو مع تعديلات طفيفة */
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+      color: #333;
+      direction: rtl;
+    }
+
     header {
       background-color: #4db6ac;
       color: white;
@@ -23,12 +48,14 @@
       width: 100%;
       top: 0;
       z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     main {
-      margin-top: 70px;
       padding: 20px;
-      height: calc(100vh - 90px);
+      height: calc(100vh - 110px); /* حساب الارتفاع المتبقي */
       overflow-y: auto;
     }
 
