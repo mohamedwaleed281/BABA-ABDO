@@ -1,1016 +1,373 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>كشكولي</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --primary-color: #2a9d8f;
-      --secondary-color: #264653;
-      --accent-color: #e9c46a;
-      --light-bg: #f8f9fa;
-      --dark-text: #212529;
-      --light-text: #f8f9fa;
-      --border-radius: 8px;
-      --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      --header-height: 60px;
-      --toolbar-height: 50px;
-    }
-
-    * {
-      box-sizing: border-box;
+    body {
+      font-family: 'Cairo', sans-serif;
       margin: 0;
       padding: 0;
-    }
-
-    body {
-      font-family: 'Tajawal', sans-serif;
-      background: var(--light-bg);
-      color: var(--dark-text);
+      background-color: #f4f9f9;
+      color: #333;
+      direction: rtl;
       height: 100vh;
-      display: flex;
-      flex-direction: column;
       overflow: hidden;
     }
-
     header {
-      background: var(--primary-color);
+      background-color: #4db6ac;
       color: white;
-      padding: 1rem;
       text-align: center;
-      font-size: 1.25rem;
-      font-weight: 700;
-      box-shadow: var(--box-shadow);
-      height: var(--header-height);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-
-    main {
-      flex: 1;
-      display: flex;
-      overflow: hidden;
-      position: relative;
-      margin-top: var(--header-height);
-    }
-
-    section {
-      flex: 1;
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
-      padding: 0;
-      background: var(--light-bg);
-    }
-
-    section.active {
-      display: flex;
-    }
-
-    #foldersPage {
-      padding: 1rem 1rem calc(var(--header-height) + 1rem) 1rem;
-    }
-
-    .page-title {
-      font-size: 1.3rem;
-      margin-bottom: 1.5rem;
-      color: var(--secondary-color);
-      text-align: center;
-    }
-
-    .list-container {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0.5rem;
-      margin-bottom: 1rem;
-    }
-
-    .list-item {
-      background: white;
-      border-radius: var(--border-radius);
       padding: 1rem;
-      margin-bottom: 0.75rem;
-      display: flex;
-      align-items: center;
-      box-shadow: var(--box-shadow);
-      transition: transform 0.2s;
-      gap: 1rem;
-    }
-
-    .list-item:active {
-      transform: scale(0.98);
-    }
-
-    .item-title {
-      flex: 1;
-      font-weight: 500;
-      font-size: 1.1rem;
-    }
-
-    .item-actions {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .action-btn {
-      background: none;
-      border: none;
-      font-size: 1.1rem;
-      color: var(--secondary-color);
-      opacity: 0.7;
-      padding: 0.25rem;
-      line-height: 1;
-    }
-
-    .action-btn:hover {
-      opacity: 1;
-    }
-
-    .add-btn {
-      background: var(--primary-color);
-      color: white;
-      border: none;
-      border-radius: var(--border-radius);
-      padding: 1rem;
-      font-size: 1.1rem;
-      width: calc(100% - 2rem);
-      margin: 0 auto 1rem;
-      box-shadow: var(--box-shadow);
-      position: fixed;
-      bottom: 1rem;
-      left: 1rem;
-      right: 1rem;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-    }
-
-    .back-btn {
-      background: none;
-      border: none;
       font-size: 1.5rem;
-      padding: 0.5rem;
-      color: var(--secondary-color);
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 1001;
+    }
+    main {
+      height: calc(100vh - 70px);
+      overflow-y: auto;
+      padding: 1rem;
+      margin-top: 70px;
+    }
+    .folder, .lesson {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin: 0.5rem 0;
+      position: relative;
+    }
+    .folder .actions, .lesson .actions {
       position: absolute;
-      right: 1rem;
+      left: 10px;
       top: 50%;
       transform: translateY(-50%);
     }
-
-    #lessonsPage {
-      padding-bottom: calc(var(--header-height) + 2rem);
+    .actions button {
+      background: none;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-right: 5px;
     }
-
-    #editorPage {
-      padding-top: var(--toolbar-height);
+    .hidden { display: none; }
+    button {
+      background-color: #4db6ac;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 0.25rem;
     }
-
-    .editor-header {
-      background: white;
+    #editorPage, #lessonsPage { display: none; }
+    #editor {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background-color: white;
+      min-height: calc(100vh - 170px);
+      margin-top: 120px;
       padding: 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    }
+    .toolbar {
       position: fixed;
-      top: var(--header-height);
+      top: 70px;
       left: 0;
       right: 0;
-      z-index: 100;
-      box-shadow: var(--box-shadow);
-      height: var(--toolbar-height);
-    }
-
-    .editor-title {
-      font-weight: 500;
-      font-size: 1.1rem;
-      color: var(--secondary-color);
-    }
-
-    .editor-toolbar {
+      background: #fff;
+      padding: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      z-index: 1000;
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5rem;
-      padding: 0.75rem;
-      background: white;
-      position: sticky;
-      top: calc(var(--header-height) + var(--toolbar-height));
-      z-index: 50;
-      box-shadow: var(--box-shadow);
+      gap: 5px;
     }
-
-    .toolbar-btn {
-      background: #f0f0f0;
-      color: var(--dark-text);
-      border: none;
-      border-radius: 4px;
-      padding: 0.5rem 0.8rem;
-      font-size: 0.9rem;
-      min-width: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.3rem;
-    }
-
-    .toolbar-btn.active {
-      background: var(--primary-color);
-      color: white;
-    }
-
-    .editor-content {
-      flex: 1;
-      padding: 1.5rem;
-      overflow-y: auto;
-      background: white;
-      margin: 1rem;
-      border-radius: var(--border-radius);
-      box-shadow: var(--box-shadow);
-    }
-
     .title-box {
-      background: #e3f2fd;
-      border-right: 4px solid var(--primary-color);
-      padding: 1rem;
-      margin: 1.5rem 0;
-      font-weight: 500;
-      font-size: 1.3rem;
-      border-radius: var(--border-radius);
+      background-color: #dcedc8;
+      border-left: 5px solid #8bc34a;
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+      font-weight: bold;
     }
-
     .question-box {
-      background: #fff8e1;
-      border-right: 4px solid #ffb300;
-      padding: 1rem;
-      margin: 1.5rem 0;
-      font-weight: 500;
-      border-radius: var(--border-radius);
+      background-color: #fff3cd;
+      border-right: 5px solid #ffc107;
+      padding: 0.5rem;
+      margin: 1rem 0 0.5rem;
+      font-weight: bold;
     }
-
     .answer-box {
-      background: #e8f5e9;
-      border-right: 4px solid #4caf50;
-      padding: 1rem;
-      margin: 1.5rem 0;
-      border-radius: var(--border-radius);
+      background-color: #e3f2fd;
+      border-right: 5px solid #2196f3;
+      padding: 0.5rem;
+      margin: 0 0 1rem;
     }
-
-    .audio-player {
-      width: 100%;
-      margin: 2rem 0;
-      background: #f5f5f5;
-      border-radius: var(--border-radius);
-      padding: 1.5rem;
-      position: relative;
-    }
-
-    .audio-controls {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .audio-btn {
-      background: var(--primary-color);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-    }
-
-    .progress-container {
-      width: 100%;
-      height: 8px;
-      background: #ddd;
-      border-radius: 4px;
-      margin-top: 1rem;
-      position: relative;
-      cursor: pointer;
-    }
-
-    .progress-bar {
-      height: 100%;
-      background: var(--primary-color);
-      border-radius: 4px;
-      width: 0%;
-      transition: width 0.1s linear;
-    }
-
-    .time-display {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.9rem;
-      color: #666;
-      margin-top: 0.5rem;
-    }
-
-    .audio-delete {
-      position: absolute;
-      top: 0.5rem;
-      left: 0.5rem;
-      background: #ff4444;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      font-size: 0.9rem;
-    }
-
-    .content-image {
-      max-width: 100%;
-      height: auto;
-      border-radius: var(--border-radius);
-      margin: 1.5rem 0;
-      cursor: zoom-in;
-      display: block;
-    }
-
-    .image-fullscreen {
+    .fullscreen-image {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.9);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
+      top: 0; right: 0; bottom: 0; left: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999;
     }
-
-    .close-fullscreen {
-      position: absolute;
-      top: 1.5rem;
-      left: 1.5rem;
-      background: #ff4444;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 45px;
-      height: 45px;
-      font-size: 1.2rem;
+    .fullscreen-image img {
+      max-width: 90%; max-height: 90%;
     }
-
-    .read-mode-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: white;
-      z-index: 3000;
-      overflow-y: auto;
-      padding: 2rem;
-    }
-
-    .read-mode-content {
+    .reading-mode {
+      background: #f0f0f0 !important;
+      padding: 20px;
       max-width: 800px;
       margin: 0 auto;
-      font-size: 1.2rem;
-      line-height: 1.8;
-      padding: 2rem 0;
+      pointer-events: none;
     }
-
-    .read-mode-controls {
-      position: fixed;
-      top: 1rem;
-      left: 1rem;
-      display: flex;
-      gap: 1rem;
-      background: rgba(255, 255, 255, 0.95);
-      padding: 1rem;
-      border-radius: var(--border-radius);
-      box-shadow: var(--box-shadow);
-      z-index: 3001;
+    .reading-mode .title-box,
+    .reading-mode .question-box,
+    .reading-mode .answer-box {
+      pointer-events: auto;
     }
-
-    @media (max-width: 768px) {
-      :root {
-        --header-height: 50px;
-        --toolbar-height: 45px;
-      }
-
-      .editor-toolbar {
-        gap: 0.3rem;
-        padding: 0.5rem;
-      }
-
-      .toolbar-btn {
-        padding: 0.4rem 0.6rem;
-        font-size: 0.8rem;
-      }
-
-      .list-item {
-        padding: 0.8rem;
-      }
-
-      .add-btn {
-        font-size: 1rem;
-        padding: 0.8rem;
-      }
-
-      .read-mode-content {
-        font-size: 1rem;
-        padding: 1rem;
-      }
+    .highlight {
+      background-color: yellow;
+      padding: 2px 4px;
+      border-radius: 3px;
     }
   </style>
 </head>
 <body>
   <header>كشكولي</header>
   <main>
-    <section id="foldersPage" class="active">
-      <h2 class="page-title">موادك الدراسية</h2>
-      <div class="list-container" id="foldersList"></div>
-      <button class="add-btn" onclick="addFolder()">+ إضافة مادة جديدة</button>
+    <section id="foldersPage">
+      <h2>موادك</h2>
+      <div id="foldersList"></div>
+      <button onclick="addFolder()">+ مادة جديدة</button>
     </section>
 
     <section id="lessonsPage">
-      <div class="editor-header">
-        <button class="back-btn" onclick="showPage('foldersPage')">←</button>
-        <div class="editor-title">الدروس</div>
-      </div>
-      <div class="list-container" id="lessonsList"></div>
-      <button class="add-btn" onclick="addLesson()">+ إضافة درس جديد</button>
+      <button onclick="backToFolders()">عودة للمواد</button>
+      <h2 id="currentFolderTitle"></h2>
+      <div id="lessonsList"></div>
+      <button onclick="addLesson()">+ درس جديد</button>
     </section>
 
     <section id="editorPage">
-      <div class="editor-header">
-        <button class="back-btn" onclick="backToLessons()">←</button>
-        <div class="editor-title" id="lessonTitle"></div>
+      <button onclick="backToLessons()">عودة للدروس</button>
+      <h2 id="lessonTitle"></h2>
+      <div class="toolbar">
+        <button onclick="insertAtCursor('<div class=\'title-box\' contenteditable=\'true\'>عنوان جديد</div><div><br></div>')">+ عنوان</button>
+        <button onclick="insertAtCursor('<div class=\'question-box\' contenteditable=\'true\'>س: اكتب في ...</div><div><br></div>')">+ سؤال</button>
+        <button onclick="insertAtCursor('<div class=\'answer-box\' contenteditable=\'true\'>الإجابة:</div><div><br></div>')">+ إجابة</button>
+        <button onclick="document.execCommand('bold')">عريض</button>
+        <button onclick="document.execCommand('italic')">مائل</button>
+        <button onclick="document.execCommand('insertUnorderedList')">قائمة نقطية</button>
+        <input type="color" id="colorPicker">
+        <input type="color" id="highlighterColor" style="width: 30px; height: 30px;">
+        <button onclick="highlightText()">تمييز</button>
+        <input type="file" id="imageInput" accept="image/*">
+        <button onclick="scrollToCenter()">⤓ منتصف الصفحة</button>
+        <button onclick="toggleReadingMode()">📖 وضع القراءة</button>
       </div>
-      <div class="editor-toolbar">
-        <button class="toolbar-btn" onclick="insertAtCursor('<div class=&quot;title-box&quot; contenteditable=&quot;true&quot;>عنوان جديد</div>')">عنوان</button>
-        <button class="toolbar-btn" onclick="insertAtCursor('<div class=&quot;question-box&quot; contenteditable=&quot;true&quot;>سؤال جديد</div>')">سؤال</button>
-        <button class="toolbar-btn" onclick="insertAtCursor('<div class=&quot;answer-box&quot; contenteditable=&quot;true&quot;>إجابة جديدة</div>')">إجابة</button>
-        <button class="toolbar-btn" onclick="formatText('bold')">عريض</button>
-        <button class="toolbar-btn" onclick="formatText('italic')">مائل</button>
-        <button class="toolbar-btn" onclick="formatText('underline')">تحته خط</button>
-        <input type="color" id="colorPicker" class="toolbar-btn" title="لون النص" onchange="changeTextColor(this.value)">
-        <input type="file" id="imageInput" accept="image/*" class="toolbar-btn" style="display: none;" onchange="insertImage(this)">
-        <button class="toolbar-btn" onclick="document.getElementById('imageInput').click()">صورة</button>
-        <input type="file" id="audioInput" accept="audio/*" class="toolbar-btn" style="display: none;" onchange="insertAudio(this)">
-        <button class="toolbar-btn" onclick="document.getElementById('audioInput').click()">صوت</button>
-        <button class="toolbar-btn" onclick="toggleReadMode()">📖 قراءة</button>
-      </div>
-      <div class="editor-content" id="editor" contenteditable="true"></div>
+      <div id="editor" contenteditable="true">اكتب هنا...</div>
     </section>
   </main>
-
-  <div id="readModeContainer" class="read-mode-overlay" style="display: none;">
-    <div class="read-mode-controls">
-      <button onclick="adjustFontSize(1)">+ تكبير</button>
-      <button onclick="adjustFontSize(-1)">- تصغير</button>
-      <button onclick="toggleReadMode()">✕ إغلاق</button>
-    </div>
-    <div class="read-mode-content" id="readModeContent"></div>
-  </div>
-
   <script>
-    let db;
-    let folders = [];
-    let currentFolderId = null;
-    let currentLessonId = null;
-    let isDBReady = false;
+    let folders = JSON.parse(localStorage.getItem("folders")) || [];
+    let currentFolder = null, currentLesson = null;
+    let isReadingMode = false;
 
-    function initDB() {
-      return new Promise((resolve, reject) => {
-        const request = indexedDB.open('KashkooliDB', 2);
-        
-        request.onupgradeneeded = (event) => {
-          const db = event.target.result;
-          if (!db.objectStoreNames.contains('folders')) {
-            db.createObjectStore('folders', { keyPath: 'id' });
-          }
-          if (!db.objectStoreNames.contains('media')) {
-            db.createObjectStore('media', { keyPath: 'id' });
-          }
-        };
-        
-        request.onsuccess = (event) => {
-          db = event.target.result;
-          isDBReady = true;
-          resolve();
-        };
-        
-        request.onerror = (event) => {
-          console.error('فشل فتح قاعدة البيانات:', event.target.error);
-          reject(event.target.error);
-        };
-      });
+    function saveData() {
+      localStorage.setItem("folders", JSON.stringify(folders));
     }
 
-    async function loadData() {
-      if (!isDBReady) await initDB();
-      
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['folders'], 'readonly');
-        const store = transaction.objectStore('folders');
-        const request = store.getAll();
-        
-        request.onsuccess = (event) => {
-          folders = event.target.result || [];
-          renderFolders();
-          resolve();
-        };
-        
-        request.onerror = (event) => {
-          console.error('فشل تحميل البيانات:', event.target.error);
-          reject(event.target.error);
-        };
-      });
+    function showPage(id) {
+      document.getElementById("foldersPage").style.display = "none";
+      document.getElementById("lessonsPage").style.display = "none";
+      document.getElementById("editorPage").style.display = "none";
+      document.getElementById(id).style.display = "block";
     }
 
-    async function saveData() {
-      if (!isDBReady) await initDB();
-      
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['folders'], 'readwrite');
-        const store = transaction.objectStore('folders');
-        
-        const clearRequest = store.clear();
-        
-        clearRequest.onsuccess = () => {
-          folders.forEach(folder => {
-            store.put(folder);
-          });
-          resolve();
-        };
-        
-        clearRequest.onerror = (event) => {
-          console.error('فشل حفظ البيانات:', event.target.error);
-          reject(event.target.error);
-        };
-      });
+    function addFolder() {
+      const name = prompt("اسم المادة:");
+      if (!name) return;
+      folders.push({ name, lessons: [] });
+      saveData();
+      renderFolders();
     }
 
-    async function saveMediaFile(id, file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const transaction = db.transaction(['media'], 'readwrite');
-          const store = transaction.objectStore('media');
-          store.put({ id, data: event.target.result });
-          resolve();
-        };
-        reader.readAsDataURL(file);
-      });
+    function editFolder(index) {
+      const newName = prompt("اسم جديد للمادة:", folders[index].name);
+      if (newName) {
+        folders[index].name = newName;
+        saveData();
+        renderFolders();
+      }
     }
 
-    async function getMediaFile(id) {
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['media'], 'readonly');
-        const store = transaction.objectStore('media');
-        const request = store.get(id);
-        
-        request.onsuccess = (event) => {
-          resolve(event.target.result?.data);
-        };
-        
-        request.onerror = (event) => {
-          reject(event.target.error);
-        };
-      });
+    function deleteFolder(index) {
+      if (confirm("هل تريد حذف هذه المادة؟")) {
+        folders.splice(index, 1);
+        saveData();
+        renderFolders();
+      }
     }
 
     function renderFolders() {
-      const foldersList = document.getElementById('foldersList');
-      foldersList.innerHTML = '';
-      
-      if (folders.length === 0) {
-        foldersList.innerHTML = '<p style="text-align: center; color: #666;">لا توجد مواد حتى الآن</p>';
-        return;
-      }
-      
-      folders.forEach(folder => {
-        const folderItem = document.createElement('div');
-        folderItem.className = 'list-item';
-        folderItem.innerHTML = `
-          <div class="item-title" onclick="openFolder('${folder.id}')">${folder.name}</div>
-          <div class="item-actions">
-            <button class="action-btn" onclick="editFolder('${folder.id}', event)">✏️</button>
-            <button class="action-btn" onclick="deleteFolder('${folder.id}', event)">🗑️</button>
+      const list = document.getElementById("foldersList");
+      list.innerHTML = "";
+      folders.forEach((folder, index) => {
+        const div = document.createElement("div");
+        div.className = "folder";
+        div.innerHTML = `
+          <span onclick="openFolder(${index})">${folder.name}</span>
+          <div class="actions">
+            <button onclick="editFolder(${index})">✏️</button>
+            <button onclick="deleteFolder(${index})">🗑️</button>
           </div>
         `;
-        foldersList.appendChild(folderItem);
+        list.appendChild(div);
       });
     }
 
-    async function addFolder() {
-      const name = prompt('أدخل اسم المادة:');
+    function openFolder(index) {
+      currentFolder = folders[index];
+      document.getElementById("currentFolderTitle").textContent = currentFolder.name;
+      showPage("lessonsPage");
+      renderLessons();
+    }
+
+    function addLesson() {
+      const name = prompt("اسم الدرس:");
       if (!name) return;
-      
-      const newFolder = {
-        id: generateId(),
-        name: name.trim(),
-        lessons: [],
-        createdAt: new Date().toISOString()
-      };
-      
-      folders.push(newFolder);
-      await saveData();
-      renderFolders();
+      currentFolder.lessons.push({ name, content: "" });
+      saveData();
+      renderLessons();
     }
 
-    function openFolder(folderId) {
-      currentFolderId = folderId;
-      const folder = folders.find(f => f.id === folderId);
-      if (!folder) return;
-      
-      renderLessons(folder.lessons);
-      showPage('lessonsPage');
-    }
-
-    async function editFolder(folderId, event) {
-      event.stopPropagation();
-      const folder = folders.find(f => f.id === folderId);
-      if (!folder) return;
-      
-      const newName = prompt('تعديل اسم المادة:', folder.name);
-      if (!newName) return;
-      
-      folder.name = newName.trim();
-      await saveData();
-      renderFolders();
-    }
-
-    async function deleteFolder(folderId, event) {
-      event.stopPropagation();
-      if (!confirm('هل أنت متأكد من حذف هذه المادة وجميع دروسها؟')) return;
-      
-      folders = folders.filter(f => f.id !== folderId);
-      await saveData();
-      renderFolders();
-    }
-
-    function renderLessons(lessons) {
-      const lessonsList = document.getElementById('lessonsList');
-      lessonsList.innerHTML = '';
-      
-      if (!lessons || lessons.length === 0) {
-        lessonsList.innerHTML = `
-          <div style="text-align: center; margin-top: 2rem; color: #666">
-            لا توجد دروس حتى الآن، اضغط على الزر أدناه لإنشاء درس جديد
-          </div>
-        `;
-        return;
-      }
-      
-      lessons.forEach(lesson => {
-        const lessonItem = document.createElement('div');
-        lessonItem.className = 'list-item';
-        lessonItem.innerHTML = `
-          <div class="item-title" onclick="openLesson('${lesson.id}')">${lesson.name}</div>
-          <div class="item-actions">
-            <button class="action-btn" onclick="editLesson('${lesson.id}', event)">✏️</button>
-            <button class="action-btn" onclick="deleteLesson('${lesson.id}', event)">🗑️</button>
-          </div>
-        `;
-        lessonsList.appendChild(lessonItem);
-      });
-    }
-
-    async function addLesson() {
-      const name = prompt('أدخل اسم الدرس:');
-      if (!name) return;
-      
-      const folder = folders.find(f => f.id === currentFolderId);
-      if (!folder) return;
-      
-      const newLesson = {
-        id: generateId(),
-        name: name.trim(),
-        content: '',
-        createdAt: new Date().toISOString()
-      };
-      
-      folder.lessons.push(newLesson);
-      await saveData();
-      renderLessons(folder.lessons);
-    }
-
-    async function openLesson(lessonId) {
-      currentLessonId = lessonId;
-      const folder = folders.find(f => f.id === currentFolderId);
-      if (!folder) return;
-      
-      const lesson = folder.lessons.find(l => l.id === lessonId);
-      if (!lesson) return;
-      
-      document.getElementById('lessonTitle').textContent = lesson.name;
-      document.getElementById('editor').innerHTML = lesson.content || '<div class="editable">ابدأ الكتابة هنا...</div>';
-      
-      await loadLessonMedia();
-      
-      showPage('editorPage');
-      setupEditorEvents();
-    }
-
-    async function loadLessonMedia() {
-      const mediaElements = document.querySelectorAll('[data-media-id]');
-      for (const element of mediaElements) {
-        const mediaId = element.getAttribute('data-media-id');
-        const mediaData = await getMediaFile(mediaId);
-        if (mediaData) {
-          if (element.tagName === 'IMG') {
-            element.src = mediaData;
-          } else if (element.tagName === 'AUDIO') {
-            element.src = mediaData;
-          }
-        }
+    function editLesson(index) {
+      const newName = prompt("اسم جديد للدرس:", currentFolder.lessons[index].name);
+      if (newName) {
+        currentFolder.lessons[index].name = newName;
+        saveData();
+        renderLessons();
       }
     }
 
-    async function editLesson(lessonId, event) {
-      event.stopPropagation();
-      const folder = folders.find(f => f.id === currentFolderId);
-      if (!folder) return;
-      
-      const lesson = folder.lessons.find(l => l.id === lessonId);
-      if (!lesson) return;
-      
-      const newName = prompt('تعديل اسم الدرس:', lesson.name);
-      if (!newName) return;
-      
-      lesson.name = newName.trim();
-      await saveData();
-      renderLessons(folder.lessons);
+    function deleteLesson(index) {
+      if (confirm("هل تريد حذف هذا الدرس؟")) {
+        currentFolder.lessons.splice(index, 1);
+        saveData();
+        renderLessons();
+      }
     }
 
-    async function deleteLesson(lessonId, event) {
-      event.stopPropagation();
-      if (!confirm('هل أنت متأكد من حذف هذا الدرس؟')) return;
-      
-      const folder = folders.find(f => f.id === currentFolderId);
-      if (!folder) return;
-      
-      folder.lessons = folder.lessons.filter(l => l.id !== lessonId);
-      await saveData();
-      renderLessons(folder.lessons);
-    }
-
-    async function backToLessons() {
-      await saveCurrentLesson();
-      showPage('lessonsPage');
-    }
-
-    async function saveCurrentLesson() {
-      if (!currentFolderId || !currentLessonId) return;
-      
-      const folder = folders.find(f => f.id === currentFolderId);
-      if (!folder) return;
-      
-      const lesson = folder.lessons.find(l => l.id === currentLessonId);
-      if (!lesson) return;
-      
-      lesson.content = document.getElementById('editor').innerHTML;
-      lesson.updatedAt = new Date().toISOString();
-      
-      await saveData();
-    }
-
-    function showPage(pageId) {
-      document.querySelectorAll('section').forEach(section => {
-        section.classList.remove('active');
-        section.style.display = 'none';
+    function renderLessons() {
+      const list = document.getElementById("lessonsList");
+      list.innerHTML = "";
+      currentFolder.lessons.forEach((lesson, index) => {
+        const div = document.createElement("div");
+        div.className = "lesson";
+        div.innerHTML = `
+          <span onclick="openLesson(${index})">${lesson.name}</span>
+          <div class="actions">
+            <button onclick="editLesson(${index})">✏️</button>
+            <button onclick="deleteLesson(${index})">🗑️</button>
+          </div>
+        `;
+        list.appendChild(div);
       });
-      document.getElementById(pageId).classList.add('active');
-      document.getElementById(pageId).style.display = 'flex';
     }
 
-    function generateId() {
-      return Date.now().toString(36) + Math.random().toString(36).substring(2);
+    function openLesson(index) {
+      currentLesson = currentFolder.lessons[index];
+      document.getElementById("lessonTitle").textContent = currentLesson.name;
+      document.getElementById("editor").innerHTML = currentLesson.content || "";
+      showPage("editorPage");
+      document.getElementById("editor").classList.remove("reading-mode");
+      document.getElementById("editor").contentEditable = "true";
+      isReadingMode = false;
+    }
+
+    function backToFolders() { showPage("foldersPage"); }
+
+    function backToLessons() {
+      if (currentLesson) {
+        currentLesson.content = document.getElementById("editor").innerHTML;
+        saveData();
+      }
+      showPage("lessonsPage");
     }
 
     function insertAtCursor(html) {
-      const selection = window.getSelection();
-      if (!selection.rangeCount) return;
-      
-      const range = selection.getRangeAt(0);
-      range.deleteContents();
-      
-      const div = document.createElement('div');
-      div.innerHTML = html;
-      
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
+      const el = document.createElement("div");
+      el.innerHTML = html;
       const frag = document.createDocumentFragment();
       let node;
-      while ((node = div.firstChild)) {
-        frag.appendChild(node);
-      }
-      
+      while ((node = el.firstChild)) frag.appendChild(node);
+      range.deleteContents();
       range.insertNode(frag);
-      range.collapse(false);
-      selection.removeAllRanges();
-      selection.addRange(range);
-      
-      const editableElements = frag.querySelectorAll('[contenteditable="true"]');
-      if (editableElements.length > 0) {
-        const lastEditable = editableElements[editableElements.length - 1];
-        lastEditable.focus();
-      }
     }
 
-    function formatText(command, value = null) {
-      document.execCommand(command, false, value);
-      document.getElementById('editor').focus();
-    }
+    document.getElementById("colorPicker").addEventListener("input", function () {
+      document.execCommand("styleWithCSS", false, true);
+      document.execCommand("foreColor", false, this.value);
+    });
 
-    function changeTextColor(color) {
-      formatText('foreColor', color);
-    }
-
-    async function insertImage(input) {
-      const file = input.files[0];
+    document.getElementById("imageInput").addEventListener("change", function (e) {
+      const file = e.target.files[0];
       if (!file) return;
-      
-      const mediaId = generateId();
-      await saveMediaFile(mediaId, file);
-      
       const reader = new FileReader();
-      reader.onload = (event) => {
-        const img = document.createElement('img');
-        img.className = 'content-image';
-        img.src = event.target.result;
-        img.setAttribute('data-media-id', mediaId);
-        img.onclick = showFullscreenImage;
-        
+      reader.onload = function () {
+        const img = document.createElement("img");
+        img.src = reader.result;
+        img.style.maxWidth = "150px";
+        img.style.cursor = "pointer";
+        img.onclick = function () {
+          const overlay = document.createElement("div");
+          overlay.className = "fullscreen-image";
+          overlay.innerHTML = `<img src="${img.src}" onclick="this.parentElement.remove()">`;
+          document.body.appendChild(overlay);
+        };
         insertAtCursor(img.outerHTML);
       };
       reader.readAsDataURL(file);
-      input.value = '';
-    }
-
-    function showFullscreenImage(event) {
-      const imgSrc = event.target.src;
-      
-      const overlay = document.createElement('div');
-      overlay.className = 'image-fullscreen';
-      overlay.innerHTML = `
-        <img src="${imgSrc}">
-        <button class="close-fullscreen" onclick="this.parentElement.remove()">✕</button>
-      `;
-      
-      document.body.appendChild(overlay);
-    }
-
-    async function insertAudio(input) {
-      const file = input.files[0];
-      if (!file) return;
-      
-      const mediaId = generateId();
-      await saveMediaFile(mediaId, file);
-      
-      const audioContainer = document.createElement('div');
-      audioContainer.className = 'audio-player';
-      
-      const audioId = `audio-${mediaId}`;
-      audioContainer.innerHTML = `
-        <button class="audio-delete" onclick="deleteAudioElement(this.parentElement)">✕</button>
-        <div class="audio-controls">
-          <button class="audio-btn" onclick="skipAudio('${audioId}', -10)">-10</button>
-          <button class="audio-btn play-pause-btn" onclick="togglePlayPause('${audioId}')">▶</button>
-          <button class="audio-btn" onclick="skipAudio('${audioId}', 10)">+10</button>
-        </div>
-        <div class="progress-container" onclick="seekAudio(event, '${audioId}')">
-          <div class="progress-bar" id="progress-${audioId}"></div>
-        </div>
-        <div class="time-display">
-          <span id="current-time-${audioId}">0:00</span>
-          <span id="duration-${audioId}">0:00</span>
-        </div>
-        <audio id="${audioId}" data-media-id="${mediaId}" ontimeupdate="updateAudioProgress('${audioId}')"></audio>
-      `;
-      
-      document.getElementById('editor').appendChild(audioContainer);
-      
-      const audioElement = document.getElementById(audioId);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        audioElement.src = event.target.result;
-      };
-      reader.readAsDataURL(file);
-      
-      input.value = '';
-    }
-
-    function togglePlayPause(audioId) {
-      const audio = document.getElementById(audioId);
-      const btn = document.querySelector(`#${audioId}`).parentElement.querySelector('.play-pause-btn');
-      
-      if (audio.paused) {
-        audio.play();
-        btn.innerHTML = '❚❚';
-      } else {
-        audio.pause();
-        btn.innerHTML = '▶';
-      }
-    }
-
-    function skipAudio(audioId, seconds) {
-      const audio = document.getElementById(audioId);
-      audio.currentTime += seconds;
-    }
-
-    function seekAudio(event, audioId) {
-      const audio = document.getElementById(audioId);
-      const progressContainer = event.currentTarget;
-      const rect = progressContainer.getBoundingClientRect();
-      const percent = (event.clientX - rect.left) / rect.width;
-      audio.currentTime = percent * audio.duration;
-    }
-
-    function updateAudioProgress(audioId) {
-      const audio = document.getElementById(audioId);
-      const progress = (audio.currentTime / audio.duration) * 100;
-      document.getElementById(`progress-${audioId}`).style.width = `${progress}%`;
-      
-      document.getElementById(`current-time-${audioId}`).textContent = formatTime(audio.currentTime);
-      document.getElementById(`duration-${audioId}`).textContent = formatTime(audio.duration);
-    }
-
-    function formatTime(seconds) {
-      const mins = Math.floor(seconds / 60);
-      const secs = Math.floor(seconds % 60);
-      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-    }
-
-    function deleteAudioElement(element) {
-      if (confirm('هل تريد حذف هذا الملف الصوتي؟')) {
-        element.remove();
-      }
-    }
-
-    function setupEditorEvents() {
-      const editor = document.getElementById('editor');
-      
-      editor.addEventListener('click', (e) => {
-        if (e.target === editor) {
-          const paragraph = document.createElement('div');
-          paragraph.className = 'editable';
-          paragraph.contentEditable = 'true';
-          editor.appendChild(paragraph);
-          paragraph.focus();
-        }
-      });
-      
-      setInterval(saveCurrentLesson, 5000);
-    }
-
-    function toggleReadMode() {
-      const container = document.getElementById('readModeContainer');
-      const isVisible = container.style.display === 'block';
-      
-      if (!isVisible) {
-        const editorContent = document.getElementById('editor').cloneNode(true);
-        cleanContentForReadMode(editorContent);
-        document.getElementById('readModeContent').innerHTML = '';
-        document.getElementById('readModeContent').appendChild(editorContent);
-        
-        document.getElementById('readModeContent').querySelectorAll('[contenteditable]').forEach(el => {
-          el.contentEditable = false;
-        });
-        
-        container.style.display = 'block';
-      } else {
-        container.style.display = 'none';
-      }
-    }
-
-    function cleanContentForReadMode(content) {
-      content.querySelectorAll('.audio-delete, .action-btn').forEach(el => el.remove());
-      
-      content.querySelectorAll('audio').forEach(audio => {
-        audio.controls = true;
-      });
-      
-      content.querySelectorAll('img').forEach(img => {
-        img.onclick = showFullscreenImage;
-      });
-    }
-
-    function adjustFontSize(change) {
-      const content = document.getElementById('readModeContent');
-      const currentSize = parseInt(window.getComputedStyle(content).fontSize) || 16;
-      content.style.fontSize = (currentSize + change) + 'px';
-    }
-
-    window.addEventListener('DOMContentLoaded', async () => {
-      await initDB();
-      await loadData();
-      showPage('foldersPage');
     });
+
+    function scrollToCenter() {
+      const editor = document.getElementById("editor");
+      const centerPosition = editor.scrollHeight / 2 - editor.clientHeight / 2;
+      editor.scrollTo({
+        top: centerPosition,
+        behavior: "smooth"
+      });
+    }
+
+    function toggleReadingMode() {
+      const editor = document.getElementById("editor");
+      isReadingMode = !isReadingMode;
+      editor.classList.toggle("reading-mode");
+      editor.contentEditable = !isReadingMode;
+      
+      if (isReadingMode) {
+        editor.querySelectorAll("img").forEach(img => {
+          img.style.maxWidth = "100%";
+          img.style.height = "auto";
+          img.style.display = "block";
+          img.style.margin = "10px auto";
+        });
+      }
+    }
+
+    function highlightText() {
+      const color = document.getElementById("highlighterColor").value;
+      document.execCommand("styleWithCSS", false, true);
+      document.execCommand("backColor", false, color);
+    }
+
+    renderFolders();
+    showPage("foldersPage");
   </script>
 </body>
 </html>
