@@ -5,27 +5,154 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>كشكولي</title>
   <style>
-    /* الأنماط المعدلة */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: #f8f9fa;
+      color: #2c3e50;
+      direction: rtl;
+    }
+
+    header {
+      background: #2c3e50;
+      color: white;
+      padding: 1rem;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      height: 60px;
+      z-index: 1000;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    main {
+      margin-top: 60px;
+      padding: 20px;
+      min-height: calc(100vh - 60px);
+    }
+
+    .toolbar {
+      position: fixed;
+      top: 60px;
+      background: white;
+      padding: 10px 20px;
+      width: 100%;
+      z-index: 999;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .folder, .lesson {
+      background: white;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .folder:hover, .lesson:hover {
+      transform: translateX(-5px);
+    }
+
+    .actions {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      gap: 5px;
+    }
+
+    button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      min-width: 80px;
+      transition: opacity 0.2s;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    #editor {
+      background: white;
+      min-height: 500px;
+      padding: 30px;
+      border-radius: 10px;
+      margin-top: 50px;
+      line-height: 1.6;
+      font-size: 18px;
+      border: 1px solid #ddd;
+      outline: none;
+    }
+
+    .title-box {
+      background: #ecf0f1;
+      border-right: 4px solid #3498db;
+      padding: 15px;
+      margin: 20px 0;
+    }
+
+    .question-box {
+      background: #fcf3cf;
+      border-right: 4px solid #f1c40f;
+      padding: 15px;
+      margin: 20px 0;
+    }
+
+    .answer-box {
+      background: #d4efdf;
+      border-right: 4px solid #2ecc71;
+      padding: 15px;
+      margin: 20px 0;
+    }
+
+    .reading-mode {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: white;
+      z-index: 2000;
+      padding: 40px;
+      font-size: 24px;
+      overflow-y: auto;
+    }
+
     .fullscreen-image {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0,0,0,0.95);
+      background: rgba(0,0,0,0.9);
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 3000;
-      cursor: move;
-      overflow: auto;
     }
 
     .fullscreen-image img {
-      max-width: 100%;
-      max-height: 100%;
+      max-width: 90%;
+      max-height: 90%;
       object-fit: contain;
-      transition: transform 0.3s;
+      cursor: pointer;
     }
 
     .close-btn {
@@ -34,8 +161,8 @@
       left: 20px;
       background: #fff;
       color: #000;
-      padding: 10px;
-      border-radius: 50%;
+      padding: 10px 15px;
+      border-radius: 5px;
       cursor: pointer;
       z-index: 3001;
     }
@@ -47,34 +174,30 @@
       background: rgba(255,255,255,0.9);
       padding: 10px;
       border-radius: 8px;
+      display: flex;
+      gap: 5px;
     }
 
-    .reading-mode .back-btn {
-      display: block !important;
+    .back-btn {
       position: fixed;
       top: 20px;
       right: 20px;
-      z-index: 2001;
-      background: #fff;
-      color: #000;
+      z-index: 1001;
     }
   </style>
 </head>
 <body>
-  <!-- باقي الهيكل كما هو مع هذه الإضافات -->
   <header>
     <h1>كشكولي</h1>
   </header>
 
   <main>
-    <!-- صفحة المواد -->
     <section id="foldersPage">
       <h2>المواد الدراسية</h2>
       <div id="foldersList"></div>
       <button onclick="addFolder()">+ مادة جديدة</button>
     </section>
 
-    <!-- صفحة الدروس -->
     <section id="lessonsPage" style="display:none;">
       <button class="back-btn" onclick="showPage('foldersPage')">← الرجوع</button>
       <h2 id="currentFolderTitle"></h2>
@@ -82,7 +205,6 @@
       <button onclick="addLesson()">+ درس جديد</button>
     </section>
 
-    <!-- صفحة المحرر -->
     <section id="editorPage" style="display:none;">
       <button class="back-btn" onclick="showPage('lessonsPage')">← الرجوع</button>
       <h2 id="lessonTitle"></h2>
@@ -92,29 +214,28 @@
         <button onclick="insertTemplate('answer-box', 'إجابة')">💡 إجابة</button>
         <button onclick="execCommand('bold')">عريض</button>
         <button onclick="execCommand('italic')">مائل</button>
+        <input type="color" onchange="changeTextColor(this.value)">
         <input type="color" id="highlighterColor" onchange="setHighlighterColor(this.value)">
         <button onclick="applyHighlight()">🖍️ تمييز</button>
         <input type="file" id="imageInput" accept="image/*" hidden>
         <button onclick="uploadImage()">🖼️ صورة</button>
         <button onclick="scrollToCenter()">🎯 منتصف</button>
         <button onclick="toggleReadingMode()">📖 قراءة</button>
-        <button onclick="toggleSearch()">🔍 بحث</button>
       </div>
       <div id="editor" contenteditable="true"></div>
     </section>
   </main>
-  
-  
+
   <script>
-   
-    // البيانات التطبيق
     let folders = JSON.parse(localStorage.getItem('folders')) || [];
     let currentFolderIndex = null;
     let currentLessonIndex = null;
     let highlightColor = '#ffff00';
     let isReadingMode = false;
+    let scale = 1;
+    let isDragging = false;
+    let startX, startY, translateX = 0, translateY = 0;
 
-    // إدارة الصفحات
     function showPage(pageId) {
       document.querySelectorAll('section').forEach(section => {
         section.style.display = 'none';
@@ -122,7 +243,6 @@
       document.getElementById(pageId).style.display = 'block';
     }
 
-    // إدارة المواد
     function addFolder() {
       const name = prompt('أدخل اسم المادة:');
       if (name) {
@@ -169,7 +289,6 @@
       }
     }
 
-    // إدارة الدروس
     function addLesson() {
       const name = prompt('أدخل اسم الدرس:');
       if (name) {
@@ -217,13 +336,22 @@
       }
     }
 
-    // محرر النصوص
     function insertTemplate(className, placeholder) {
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
+      
+      const range = sel.getRangeAt(0);
       const div = document.createElement('div');
       div.className = className;
       div.contentEditable = true;
       div.innerHTML = placeholder;
-      document.getElementById('editor').appendChild(div);
+      
+      range.deleteContents();
+      range.insertNode(div);
+      range.setStartAfter(div);
+      range.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(range);
       saveContent();
     }
 
@@ -242,7 +370,11 @@
       saveContent();
     }
 
-    // إدارة الصور
+    function changeTextColor(color) {
+      document.execCommand('foreColor', false, color);
+      saveContent();
+    }
+
     function uploadImage() {
       document.getElementById('imageInput').click();
     }
@@ -272,124 +404,24 @@
     function showFullscreenImage(src) {
       const overlay = document.createElement('div');
       overlay.className = 'fullscreen-image';
-      overlay.innerHTML = `<img src="${src}" onclick="this.parentElement.remove()">`;
-      document.body.appendChild(overlay);
-    }
-
-    // وضع القراءة
-    function toggleReadingMode() {
-      const editor = document.getElementById('editor');
-      isReadingMode = !isReadingMode;
-      
-      if (isReadingMode) {
-        editor.classList.add('reading-mode');
-        document.querySelector('.toolbar').style.display = 'none';
-        editor.contentEditable = 'false';
-        editor.style.fontSize = '24px';
-      } else {
-        editor.classList.remove('reading-mode');
-        document.querySelector('.toolbar').style.display = 'flex';
-        editor.contentEditable = 'true';
-        editor.style.fontSize = '18px';
-      }
-    }
-
-    // التمرير إلى المنتصف
-    function scrollToCenter() {
-      const editor = document.getElementById('editor');
-      const selection = window.getSelection();
-      if (selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
-        window.scrollTo({
-          top: rect.top + window.scrollY - (window.innerHeight / 2),
-          behavior: 'smooth'
-        });
-      }
-    }
-
-    // الحفظ التلقائي
-    function saveContent() {
-      if (currentFolderIndex !== null && currentLessonIndex !== null) {
-        folders[currentFolderIndex].lessons[currentLessonIndex].content = 
-          document.getElementById('editor').innerHTML;
-        localStorage.setItem('folders', JSON.stringify(folders));
-      }
-    }
-
-    // التهيئة الأولية
-    renderFolders();
-    showPage('foldersPage'); 
-    
-    // التعديلات على دالة إدراج العناصر
-    function insertTemplate(className, placeholder) {
-      const sel = window.getSelection();
-      if (!sel.rangeCount) return;
-      
-      const range = sel.getRangeAt(0);
-      const div = document.createElement('div');
-      div.className = className;
-      div.contentEditable = true;
-      div.innerHTML = placeholder;
-      
-      range.deleteContents();
-      range.insertNode(div);
-      range.setStartAfter(div);
-      range.collapse(true);
-      sel.removeAllRanges();
-      sel.addRange(range);
-      
-      saveContent();
-    }
-
-    // التعديلات على وضع القراءة
-    function toggleReadingMode() {
-      const editor = document.getElementById('editor');
-      isReadingMode = !isReadingMode;
-      
-      if (isReadingMode) {
-        editor.classList.add('reading-mode');
-        document.querySelector('.toolbar').style.display = 'none';
-        editor.contentEditable = 'false';
-        editor.style.fontSize = '24px';
-        document.querySelector('.back-btn').style.display = 'block';
-      } else {
-        editor.classList.remove('reading-mode');
-        document.querySelector('.toolbar').style.display = 'flex';
-        editor.contentEditable = 'true';
-        editor.style.fontSize = '18px';
-      }
-    }
-
-    // التعديلات على إدارة الصور
-    let scale = 1;
-    let isDragging = false;
-    let startX, startY, translateX = 0, translateY = 0;
-
-    function showFullscreenImage(src) {
-      const overlay = document.createElement('div');
-      overlay.className = 'fullscreen-image';
       
       const img = new Image();
       img.src = src;
       img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
       
-      // زر الإغلاق
       const closeBtn = document.createElement('div');
       closeBtn.className = 'close-btn';
-      closeBtn.innerHTML = '✕';
+      closeBtn.innerHTML = '✕ إغلاق';
       closeBtn.onclick = () => overlay.remove();
       
-      // عناصر التحكم بالتكبير
       const controls = document.createElement('div');
       controls.className = 'zoom-controls';
       controls.innerHTML = `
-        <button onclick="zoom(1.2)">+</button>
-        <button onclick="zoom(0.8)">-</button>
-        <button onclick="resetZoom()">Reset</button>
+        <button onclick="zoom(1.2)">تكبير +</button>
+        <button onclick="zoom(0.8)">تصغير -</button>
+        <button onclick="resetZoom()">إعادة تعيين</button>
       `;
       
-      // أحداث السحب
       img.addEventListener('mousedown', (e) => {
         isDragging = true;
         startX = e.clientX - translateX;
@@ -427,29 +459,51 @@
         'translate(0, 0) scale(1)';
     }
 
-    // إصلاح مشكلة تغيير لون النص
-    function setHighlighterColor(color) {
-      highlightColor = color;
+    function toggleReadingMode() {
+      const editor = document.getElementById('editor');
+      isReadingMode = !isReadingMode;
+      
+      if (isReadingMode) {
+        editor.classList.add('reading-mode');
+        document.querySelector('.toolbar').style.display = 'none';
+        editor.contentEditable = 'false';
+        editor.style.fontSize = '24px';
+        document.querySelector('.back-btn').style.display = 'block';
+      } else {
+        editor.classList.remove('reading-mode');
+        document.querySelector('.toolbar').style.display = 'flex';
+        editor.contentEditable = 'true';
+        editor.style.fontSize = '18px';
+      }
     }
 
-    function applyHighlight() {
-      document.execCommand('styleWithCSS', false, true);
-      document.execCommand('backColor', false, highlightColor);
-      saveContent();
+    function scrollToCenter() {
+      const editor = document.getElementById('editor');
+      const selection = window.getSelection();
+      if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        window.scrollTo({
+          top: rect.top + window.scrollY - (window.innerHeight / 2),
+          behavior: 'smooth'
+        });
+      }
     }
 
-    // إضافة دالة تغيير لون النص
-    function changeTextColor(color) {
-      document.execCommand('foreColor', false, color);
-      saveContent();
+    function saveContent() {
+      if (currentFolderIndex !== null && currentLessonIndex !== null) {
+        folders[currentFolderIndex].lessons[currentLessonIndex].content = 
+          document.getElementById('editor').innerHTML;
+        localStorage.setItem('folders', JSON.stringify(folders));
+      }
     }
 
-    // تعديل شريط الأدوات لإضافة اختيار لون النص
-    <div class="toolbar">
-      ...
-      <input type="color" onchange="changeTextColor(this.value)">
-      ...
-    </div>
+    function saveData() {
+      localStorage.setItem('folders', JSON.stringify(folders));
+    }
+
+    renderFolders();
+    showPage('foldersPage');
   </script>
 </body>
 </html>
