@@ -5,187 +5,63 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>كشكولي</title>
   <style>
-    /* الأنماط العامة */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Tajawal', sans-serif;
-      background: #f8f9fa;
-      color: #2c3e50;
-      direction: rtl;
-    }
-
-    /* العنوان الرئيسي */
-    header {
-      background: #2c3e50;
-      color: white;
-      padding: 1rem;
-      position: fixed;
-      top: 0;
-      width: 100%;
-      height: 60px;
-      z-index: 1000;
-      text-align: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-
-    /* المحتوى الرئيسي */
-    main {
-      margin-top: 60px;
-      padding: 20px;
-      min-height: calc(100vh - 60px);
-    }
-
-    /* شريط الأدوات */
-    .toolbar {
-      position: fixed;
-      top: 60px;
-      background: white;
-      padding: 10px 20px;
-      width: 100%;
-      z-index: 999;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-
-    /* العناصر التفاعلية */
-    .folder, .lesson {
-      background: white;
-      border-radius: 8px;
-      padding: 15px;
-      margin: 10px 0;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      position: relative;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-
-    .folder:hover, .lesson:hover {
-      transform: translateX(-5px);
-    }
-
-    .actions {
-      position: absolute;
-      left: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      display: flex;
-      gap: 5px;
-    }
-
-    button {
-      background-color: #3498db;
-      color: white;
-      border: none;
-      padding: 8px 15px;
-      border-radius: 5px;
-      cursor: pointer;
-      min-width: 80px;
-      transition: opacity 0.2s;
-    }
-
-    button:hover {
-      opacity: 0.9;
-    }
-
-    /* محرر النصوص */
-    #editor {
-      background: white;
-      min-height: 500px;
-      padding: 30px;
-      border-radius: 10px;
-      margin-top: 50px;
-      line-height: 1.6;
-      font-size: 18px;
-      border: 1px solid #ddd;
-      outline: none;
-    }
-
-    /* عناصر التنسيق */
-    .title-box {
-      background: #ecf0f1;
-      border-right: 4px solid #3498db;
-      padding: 15px;
-      margin: 20px 0;
-    }
-
-    .question-box {
-      background: #fcf3cf;
-      border-right: 4px solid #f1c40f;
-      padding: 15px;
-      margin: 20px 0;
-    }
-
-    .answer-box {
-      background: #d4efdf;
-      border-right: 4px solid #2ecc71;
-      padding: 15px;
-      margin: 20px 0;
-    }
-
-    /* وضع القراءة */
-    .reading-mode {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: white;
-      z-index: 2000;
-      padding: 40px;
-      font-size: 24px;
-      overflow-y: auto;
-    }
-
-    /* الصور الكاملة */
+    /* الأنماط المعدلة */
     .fullscreen-image {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0,0,0,0.9);
+      background: rgba(0,0,0,0.95);
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 3000;
+      cursor: move;
+      overflow: auto;
     }
 
     .fullscreen-image img {
-      max-width: 90%;
-      max-height: 90%;
+      max-width: 100%;
+      max-height: 100%;
       object-fit: contain;
-      cursor: zoom-out;
+      transition: transform 0.3s;
     }
 
-    /* الهايلايتر */
-    .highlight {
-      background-color: rgba(255,255,0,0.3);
-      padding: 2px 4px;
-      border-radius: 3px;
-    }
-
-    /* شريط البحث */
-    .search-bar {
+    .close-btn {
       position: fixed;
-      top: 60px;
-      left: 0;
-      right: 0;
-      background: white;
+      top: 20px;
+      left: 20px;
+      background: #fff;
+      color: #000;
       padding: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      border-radius: 50%;
+      cursor: pointer;
+      z-index: 3001;
+    }
+
+    .zoom-controls {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(255,255,255,0.9);
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .reading-mode .back-btn {
+      display: block !important;
+      position: fixed;
+      top: 20px;
+      right: 20px;
       z-index: 2001;
-      display: none;
+      background: #fff;
+      color: #000;
     }
   </style>
 </head>
 <body>
+  <!-- باقي الهيكل كما هو مع هذه الإضافات -->
   <header>
     <h1>كشكولي</h1>
   </header>
@@ -227,8 +103,10 @@
       <div id="editor" contenteditable="true"></div>
     </section>
   </main>
-
+  
+  
   <script>
+   
     // البيانات التطبيق
     let folders = JSON.parse(localStorage.getItem('folders')) || [];
     let currentFolderIndex = null;
@@ -441,7 +319,137 @@
 
     // التهيئة الأولية
     renderFolders();
-    showPage('foldersPage');
+    showPage('foldersPage'); 
+    
+    // التعديلات على دالة إدراج العناصر
+    function insertTemplate(className, placeholder) {
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
+      
+      const range = sel.getRangeAt(0);
+      const div = document.createElement('div');
+      div.className = className;
+      div.contentEditable = true;
+      div.innerHTML = placeholder;
+      
+      range.deleteContents();
+      range.insertNode(div);
+      range.setStartAfter(div);
+      range.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(range);
+      
+      saveContent();
+    }
+
+    // التعديلات على وضع القراءة
+    function toggleReadingMode() {
+      const editor = document.getElementById('editor');
+      isReadingMode = !isReadingMode;
+      
+      if (isReadingMode) {
+        editor.classList.add('reading-mode');
+        document.querySelector('.toolbar').style.display = 'none';
+        editor.contentEditable = 'false';
+        editor.style.fontSize = '24px';
+        document.querySelector('.back-btn').style.display = 'block';
+      } else {
+        editor.classList.remove('reading-mode');
+        document.querySelector('.toolbar').style.display = 'flex';
+        editor.contentEditable = 'true';
+        editor.style.fontSize = '18px';
+      }
+    }
+
+    // التعديلات على إدارة الصور
+    let scale = 1;
+    let isDragging = false;
+    let startX, startY, translateX = 0, translateY = 0;
+
+    function showFullscreenImage(src) {
+      const overlay = document.createElement('div');
+      overlay.className = 'fullscreen-image';
+      
+      const img = new Image();
+      img.src = src;
+      img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+      
+      // زر الإغلاق
+      const closeBtn = document.createElement('div');
+      closeBtn.className = 'close-btn';
+      closeBtn.innerHTML = '✕';
+      closeBtn.onclick = () => overlay.remove();
+      
+      // عناصر التحكم بالتكبير
+      const controls = document.createElement('div');
+      controls.className = 'zoom-controls';
+      controls.innerHTML = `
+        <button onclick="zoom(1.2)">+</button>
+        <button onclick="zoom(0.8)">-</button>
+        <button onclick="resetZoom()">Reset</button>
+      `;
+      
+      // أحداث السحب
+      img.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.clientX - translateX;
+        startY = e.clientY - translateY;
+      });
+      
+      document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        translateX = e.clientX - startX;
+        translateY = e.clientY - startY;
+        img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+      });
+      
+      document.addEventListener('mouseup', () => {
+        isDragging = false;
+      });
+      
+      overlay.appendChild(img);
+      overlay.appendChild(closeBtn);
+      overlay.appendChild(controls);
+      document.body.appendChild(overlay);
+    }
+
+    function zoom(factor) {
+      scale *= factor;
+      document.querySelector('.fullscreen-image img').style.transform = 
+        `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+    }
+
+    function resetZoom() {
+      scale = 1;
+      translateX = 0;
+      translateY = 0;
+      document.querySelector('.fullscreen-image img').style.transform = 
+        'translate(0, 0) scale(1)';
+    }
+
+    // إصلاح مشكلة تغيير لون النص
+    function setHighlighterColor(color) {
+      highlightColor = color;
+    }
+
+    function applyHighlight() {
+      document.execCommand('styleWithCSS', false, true);
+      document.execCommand('backColor', false, highlightColor);
+      saveContent();
+    }
+
+    // إضافة دالة تغيير لون النص
+    function changeTextColor(color) {
+      document.execCommand('foreColor', false, color);
+      saveContent();
+    }
+
+    // تعديل شريط الأدوات لإضافة اختيار لون النص
+    <div class="toolbar">
+      ...
+      <input type="color" onchange="changeTextColor(this.value)">
+      ...
+    </div>
   </script>
 </body>
 </html>
