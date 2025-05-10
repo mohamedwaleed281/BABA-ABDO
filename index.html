@@ -122,26 +122,13 @@
       margin: 20px 0;
     }
 
-    .reading-mode {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: white;
-      z-index: 2000;
-      padding: 40px;
-      font-size: 24px;
-      overflow-y: auto;
-    }
-
     .fullscreen-image {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0,0,0,0.9);
+      background: rgba(0,0,0,0.95);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -178,11 +165,39 @@
       gap: 5px;
     }
 
-    .back-btn {
+    .arrow-btn {
+      width: 40px;
+      height: 40px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    .reading-mode-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: white;
+      z-index: 2000;
+      padding: 40px;
+      overflow-y: auto;
+    }
+
+    .close-reading-mode {
       position: fixed;
       top: 20px;
-      right: 20px;
-      z-index: 1001;
+      left: 20px;
+      background: #e74c3c;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      z-index: 2001;
     }
   </style>
 </head>
@@ -233,8 +248,8 @@
     let highlightColor = '#ffff00';
     let isReadingMode = false;
     let scale = 1;
-    let isDragging = false;
-    let startX, startY, translateX = 0, translateY = 0;
+    let translateX = 0;
+    let translateY = 0;
 
     function showPage(pageId) {
       document.querySelectorAll('section').forEach(section => {
@@ -316,6 +331,13 @@
       const lesson = folders[currentFolderIndex].lessons[index];
       document.getElementById('lessonTitle').textContent = lesson.name;
       document.getElementById('editor').innerHTML = lesson.content;
+      
+      setTimeout(() => {
+        document.getElementById('editor').querySelectorAll('img').forEach(img => {
+          img.onclick = () => showFullscreenImage(img.src);
+        });
+      }, 100);
+      
       showPage('editorPage');
     }
 
@@ -407,42 +429,50 @@
       
       const img = new Image();
       img.src = src;
-      img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
       
-      const closeBtn = document.createElement('div');
-      closeBtn.className = 'close-btn';
-      closeBtn.innerHTML = '✕ إغلاق';
-      closeBtn.onclick = () => overlay.remove();
-      
-      const controls = document.createElement('div');
-      controls.className = 'zoom-controls';
-      controls.innerHTML = `
-        <button onclick="zoom(1.2)">تكبير +</button>
-        <button onclick="zoom(0.8)">تصغير -</button>
-        <button onclick="resetZoom()">إعادة تعيين</button>
+      const controls = `
+        <div class="zoom-controls">
+          <button class="arrow-btn" onclick="moveImage(-100, 0)">←</button>
+          <button class="arrow-btn" onclick="moveImage(100, 0)">→</button>
+          <button class="arrow-btn" onclick="moveImage(0, -100)">↑</button>
+          <button class="arrow-btn" onclick="moveImage(0, 100)">↓</button>
+          <button class="arrow-btn" onclick="zoom(1.2)">+</button>
+          <button class="arrow-btn" onclick="zoom(0.8)">-</button>
+          <button class="arrow-btn" onclick="resetZoom()">⟳</button>
+        </div>
+        <button class="close-btn" onclick="overlay.remove()">✕ إغلاق</button>
       `;
       
+      overlay.innerHTML = controls;
+      overlay.appendChild(img);
+      document.body.appendChild(overlay);
+
+      let isDragging = false;
+      let startX, startY;
+
       img.addEventListener('mousedown', (e) => {
         isDragging = true;
         startX = e.clientX - translateX;
         startY = e.clientY - translateY;
       });
-      
+
       document.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
         translateX = e.clientX - startX;
         translateY = e.clientY - startY;
         img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
       });
-      
+
       document.addEventListener('mouseup', () => {
         isDragging = false;
       });
-      
-      overlay.appendChild(img);
-      overlay.appendChild(closeBtn);
-      overlay.appendChild(controls);
-      document.body.appendChild(overlay);
+    }
+
+    function moveImage(x, y) {
+      translateX += x;
+      translateY += y;
+      document.querySelector('.fullscreen-image img').style.transform = 
+        `translate(${translateX}px, ${translateY}px) scale(${scale})`;
     }
 
     function zoom(factor) {
@@ -461,20 +491,22 @@
 
     function toggleReadingMode() {
       const editor = document.getElementById('editor');
-      isReadingMode = !isReadingMode;
-      
-      if (isReadingMode) {
-        editor.classList.add('reading-mode');
-        document.querySelector('.toolbar').style.display = 'none';
-        editor.contentEditable = 'false';
-        editor.style.fontSize = '24px';
-        document.querySelector('.back-btn').style.display = 'block';
+      if (!isReadingMode) {
+        const overlay = document.createElement('div');
+        overlay.className = 'reading-mode-overlay';
+        overlay.innerHTML = `
+          <button class="close-reading-mode" onclick="toggleReadingMode()">✕ إغلاق</button>
+          <div class="reading-content">${editor.innerHTML}</div>
+        `;
+        document.body.appendChild(overlay);
+        
+        overlay.querySelectorAll('img').forEach(img => {
+          img.onclick = () => showFullscreenImage(img.src);
+        });
       } else {
-        editor.classList.remove('reading-mode');
-        document.querySelector('.toolbar').style.display = 'flex';
-        editor.contentEditable = 'true';
-        editor.style.fontSize = '18px';
+        document.querySelector('.reading-mode-overlay').remove();
       }
+      isReadingMode = !isReadingMode;
     }
 
     function scrollToCenter() {
