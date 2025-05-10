@@ -6,8 +6,12 @@
   <title>كشكولي</title>
   <style>
     /* الأنماط العامة */
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: 'Tajawal', sans-serif;
+      font-family: 'Arial', sans-serif;
       margin: 0;
       padding: 0;
       background: #f8f9fa;
@@ -24,18 +28,18 @@
       top: 0;
       width: 100%;
       z-index: 1000;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       text-align: center;
+      height: 60px;
     }
 
     /* المحتوى الرئيسي */
     main {
-      margin-top: 130px;
+      margin-top: 60px;
       padding: 20px;
-      transition: 0.3s;
+      min-height: calc(100vh - 60px);
     }
 
-    /* شريط الأدوات المحسّن */
+    /* شريط الأدوات */
     .toolbar {
       position: fixed;
       top: 60px;
@@ -47,27 +51,52 @@
       gap: 10px;
       flex-wrap: wrap;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      align-items: center;
     }
 
-    /* زر الرجوع المعدّل */
-    .back-btn {
-      position: fixed;
-      left: 20px;
-      top: 70px;
-      z-index: 1001;
-      background: #e74c3c;
+    /* العناصر التفاعلية */
+    .folder, .lesson {
+      background: white;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      position: relative;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .folder:hover, .lesson:hover {
+      transform: translateX(-5px);
+    }
+
+    .actions {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+      min-width: 80px;
     }
 
     /* محرر النصوص */
     #editor {
       background: white;
-      min-height: 70vh;
+      min-height: 500px;
       padding: 30px;
       border-radius: 10px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-top: 50px;
       line-height: 1.6;
       font-size: 18px;
+      border: 1px solid #ddd;
     }
 
     /* عناصر التنسيق */
@@ -101,50 +130,9 @@
       bottom: 0;
       background: white;
       z-index: 2000;
-      padding: 30px;
+      padding: 40px;
+      font-size: 24px;
       overflow-y: auto;
-      font-size: 22px;
-    }
-
-    /* شريط البحث */
-    .search-bar {
-      position: fixed;
-      top: 60px;
-      left: 0;
-      right: 0;
-      background: white;
-      padding: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      z-index: 2001;
-      display: none;
-    }
-
-    /* الصور الكاملة */
-    .fullscreen-image {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.9);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 3000;
-    }
-
-    .fullscreen-image img {
-      max-width: 90%;
-      max-height: 90%;
-      object-fit: contain;
-      cursor: zoom-out;
-    }
-
-    /* الهايلايتر */
-    .highlight {
-      background-color: rgba(255,255,0,0.3);
-      padding: 2px 4px;
-      border-radius: 3px;
     }
   </style>
 </head>
@@ -152,13 +140,6 @@
   <header>
     <h1>كشكولي</h1>
   </header>
-
-  <!-- شريط البحث -->
-  <div class="search-bar">
-    <input type="text" id="searchInput" placeholder="ابحث في النص...">
-    <button onclick="searchText()">بحث</button>
-    <button onclick="closeSearch()">إغلاق</button>
-  </div>
 
   <main>
     <!-- صفحة المواد -->
@@ -170,7 +151,7 @@
 
     <!-- صفحة الدروس -->
     <section id="lessonsPage" style="display:none;">
-      <button class="back-btn" onclick="showPage('foldersPage')">← الرجوع</button>
+      <button onclick="showPage('foldersPage')">← الرجوع</button>
       <h2 id="currentFolderTitle"></h2>
       <div id="lessonsList"></div>
       <button onclick="addLesson()">+ درس جديد</button>
@@ -178,34 +159,27 @@
 
     <!-- صفحة المحرر -->
     <section id="editorPage" style="display:none;">
-      <button class="back-btn" onclick="backToLessons()">← الرجوع</button>
+      <button onclick="showPage('lessonsPage')">← الرجوع</button>
       <h2 id="lessonTitle"></h2>
       <div class="toolbar">
-        <button onclick="insertTemplate('title-box', 'عنوان جديد')">📌 عنوان</button>
-        <button onclick="insertTemplate('question-box', 'سؤال جديد')">❓ سؤال</button>
-        <button onclick="insertTemplate('answer-box', 'إجابة')">💡 إجابة</button>
-        <button onclick="execCommand('bold')">B</button>
-        <button onclick="execCommand('italic')">I</button>
-        <input type="color" id="highlighter" onchange="setHighlighter(this.value)">
-        <button onclick="applyHighlight()">🖍️ تمييز</button>
+        <button onclick="insertTemplate('title-box', 'عنوان جديد')">عنوان</button>
+        <button onclick="insertTemplate('question-box', 'سؤال جديد')">سؤال</button>
+        <button onclick="insertTemplate('answer-box', 'إجابة')">إجابة</button>
+        <button onclick="execCommand('bold')">عريض</button>
+        <button onclick="execCommand('italic')">مائل</button>
+        <input type="color" onchange="changeTextColor(this.value)">
         <input type="file" id="imageInput" hidden>
-        <button onclick="document.getElementById('imageInput').click()">🖼️ صورة</button>
-        <button onclick="scrollToCenter()">🎯 منتصف</button>
-        <button onclick="toggleReadingMode()">📖 قراءة</button>
-        <button onclick="toggleSearch()">🔍 بحث</button>
+        <button onclick="document.getElementById('imageInput').click()">صورة</button>
       </div>
       <div id="editor" contenteditable="true"></div>
     </section>
   </main>
 
   <script>
+    // البيانات التطبيق
     let folders = JSON.parse(localStorage.getItem('folders')) || [];
     let currentFolderIndex = null;
     let currentLessonIndex = null;
-    let isReadingMode = false;
-    let currentSearchIndex = -1;
-    let searchResults = [];
-    let highlightColor = '#ffff00';
 
     // إدارة الصفحات
     function showPage(pageId) {
@@ -219,7 +193,10 @@
     function addFolder() {
       const name = prompt('أدخل اسم المادة:');
       if (name) {
-        folders.push({ name, lessons: [] });
+        folders.push({
+          name: name,
+          lessons: []
+        });
         saveData();
         renderFolders();
       }
@@ -228,24 +205,65 @@
     function renderFolders() {
       const foldersList = document.getElementById('foldersList');
       foldersList.innerHTML = folders.map((folder, index) => `
-        <div class="folder">
-          <span onclick="openFolder(${index})">${folder.name}</span>
+        <div class="folder" onclick="openFolder(${index})">
+          ${folder.name}
           <div class="actions">
             <button onclick="editFolder(${index})">✏️</button>
-            <button onclick="deleteFolder(${index})">🗑️</button>
+            <button onclick="deleteFolder(${index}, event)">🗑️</button>
           </div>
         </div>
       `).join('');
+    }
+
+    function openFolder(index) {
+      currentFolderIndex = index;
+      document.getElementById('currentFolderTitle').textContent = folders[index].name;
+      renderLessons();
+      showPage('lessonsPage');
+    }
+
+    function editFolder(index) {
+      const newName = prompt('اسم المادة الجديد:', folders[index].name);
+      if (newName) {
+        folders[index].name = newName;
+        saveData();
+        renderFolders();
+      }
+    }
+
+    function deleteFolder(index, event) {
+      event.stopPropagation();
+      if (confirm('هل تريد حذف هذه المادة؟')) {
+        folders.splice(index, 1);
+        saveData();
+        renderFolders();
+      }
     }
 
     // إدارة الدروس
     function addLesson() {
       const name = prompt('أدخل اسم الدرس:');
       if (name) {
-        folders[currentFolderIndex].lessons.push({ name, content: '' });
+        folders[currentFolderIndex].lessons.push({
+          name: name,
+          content: ''
+        });
         saveData();
         renderLessons();
       }
+    }
+
+    function renderLessons() {
+      const lessonsList = document.getElementById('lessonsList');
+      lessonsList.innerHTML = folders[currentFolderIndex].lessons.map((lesson, index) => `
+        <div class="lesson" onclick="openLesson(${index})">
+          ${lesson.name}
+          <div class="actions">
+            <button onclick="editLesson(${index}, event)">✏️</button>
+            <button onclick="deleteLesson(${index}, event)">🗑️</button>
+          </div>
+        </div>
+      `).join('');
     }
 
     function openLesson(index) {
@@ -254,6 +272,25 @@
       document.getElementById('lessonTitle').textContent = lesson.name;
       document.getElementById('editor').innerHTML = lesson.content;
       showPage('editorPage');
+    }
+
+    function editLesson(index, event) {
+      event.stopPropagation();
+      const newName = prompt('اسم الدرس الجديد:', folders[currentFolderIndex].lessons[index].name);
+      if (newName) {
+        folders[currentFolderIndex].lessons[index].name = newName;
+        saveData();
+        renderLessons();
+      }
+    }
+
+    function deleteLesson(index, event) {
+      event.stopPropagation();
+      if (confirm('هل تريد حذف هذا الدرس؟')) {
+        folders[currentFolderIndex].lessons.splice(index, 1);
+        saveData();
+        renderLessons();
+      }
     }
 
     // محرر النصوص
@@ -271,125 +308,38 @@
       saveContent();
     }
 
+    function changeTextColor(color) {
+      document.execCommand('foreColor', false, color);
+      saveContent();
+    }
+
     // إدارة الصور
     document.getElementById('imageInput').addEventListener('change', function(e) {
       const file = e.target.files[0];
-      if (file && file.size > 5 * 1024 * 1024) {
-        alert('الحد الأقصى لحجم الصورة 5MB');
-        return;
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.style.maxWidth = '100%';
+          document.getElementById('editor').appendChild(img);
+          saveContent();
+        };
+        reader.readAsDataURL(file);
       }
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const img = new Image();
-        img.src = e.target.result;
-        img.style.maxWidth = '100%';
-        img.onclick = () => showFullscreenImage(img.src);
-        document.getElementById('editor').appendChild(img);
-        saveContent();
-      };
-      reader.readAsDataURL(file);
     });
-
-    function showFullscreenImage(src) {
-      const overlay = document.createElement('div');
-      overlay.className = 'fullscreen-image';
-      overlay.innerHTML = `<img src="${src}" onclick="this.parentElement.remove()">`;
-      document.body.appendChild(overlay);
-    }
-
-    // وضع القراءة
-    function toggleReadingMode() {
-      const editor = document.getElementById('editor');
-      isReadingMode = !isReadingMode;
-      
-      if (isReadingMode) {
-        editor.classList.add('reading-mode');
-        document.querySelector('.toolbar').style.display = 'none';
-        document.querySelector('.back-btn').style.display = 'none';
-        editor.contentEditable = false;
-        editor.style.fontSize = '24px';
-        editor.style.padding = '40px';
-      } else {
-        editor.classList.remove('reading-mode');
-        document.querySelector('.toolbar').style.display = 'flex';
-        document.querySelector('.back-btn').style.display = 'block';
-        editor.contentEditable = true;
-        editor.style.fontSize = '18px';
-        editor.style.padding = '30px';
-      }
-    }
-
-    // البحث في النص
-    function toggleSearch() {
-      document.querySelector('.search-bar').style.display = 
-        document.querySelector('.search-bar').style.display === 'none' ? 'block' : 'none';
-    }
-
-    function searchText() {
-      const term = document.getElementById('searchInput').value.toLowerCase();
-      const content = document.getElementById('editor').innerText.toLowerCase();
-      searchResults = [];
-      let pos = 0;
-
-      while ((pos = content.indexOf(term, pos)) > -1) {
-        searchResults.push(pos);
-        pos += term.length;
-      }
-
-      if (searchResults.length > 0) {
-        currentSearchIndex = 0;
-        highlightCurrentSearch();
-      }
-    }
-
-    function highlightCurrentSearch() {
-      const editor = document.getElementById('editor');
-      const textNode = editor.childNodes[0];
-      const range = document.createRange();
-      range.setStart(textNode, searchResults[currentSearchIndex]);
-      range.setEnd(textNode, searchResults[currentSearchIndex] + document.getElementById('searchInput').value.length);
-      
-      const rect = range.getBoundingClientRect();
-      window.scrollTo({
-        top: rect.top + window.scrollY - 100,
-        behavior: 'smooth'
-      });
-    }
-
-    // التمرير إلى المنتصف
-    function scrollToCenter() {
-      const editor = document.getElementById('editor');
-      const selection = window.getSelection();
-      if (selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        range.collapse(true);
-        const rect = range.getBoundingClientRect();
-        window.scrollTo({
-          top: rect.top + window.scrollY - (window.innerHeight / 2),
-          behavior: 'smooth'
-        });
-      }
-    }
-
-    // الهايلايتر
-    function setHighlighter(color) {
-      highlightColor = color;
-    }
-
-    function applyHighlight() {
-      document.execCommand('styleWithCSS', false, true);
-      document.execCommand('backColor', false, highlightColor);
-      saveContent();
-    }
 
     // الحفظ التلقائي
     function saveContent() {
       if (currentFolderIndex !== null && currentLessonIndex !== null) {
         folders[currentFolderIndex].lessons[currentLessonIndex].content = 
           document.getElementById('editor').innerHTML;
-        localStorage.setItem('folders', JSON.stringify(folders));
+        saveData();
       }
+    }
+
+    function saveData() {
+      localStorage.setItem('folders', JSON.stringify(folders));
     }
 
     // التهيئة الأولية
