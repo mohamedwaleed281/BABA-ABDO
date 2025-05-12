@@ -1,170 +1,404 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>محرر كشكولي المطور</title>
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      margin: 0;
-      padding: 0;
-      direction: rtl;
-      background-color: #f4f4f4;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كشكولي - الإصدار الكامل</title>
+    <style>
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Tajawal', sans-serif;
+        }
 
-    header {
-      background-color: #2c3e50;
-      color: white;
-      padding: 1rem;
-      text-align: center;
-      font-size: 24px;
-    }
+        body {
+            background: #f8f9fa;
+            color: #2c3e50;
+        }
 
-    .toolbar {
-      padding: 10px;
-      background-color: #fff;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            height: 60px;
+            z-index: 1000;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
 
-    .toolbar button, .toolbar input[type="color"] {
-      padding: 5px 10px;
-      font-size: 16px;
-      cursor: pointer;
-    }
+        main {
+            margin-top: 60px;
+            padding: 20px;
+            min-height: calc(100vh - 60px);
+        }
 
-    #editor {
-      padding: 20px;
-      min-height: 400px;
-      background: #fff;
-      margin: 20px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      outline: none;
-    }
+        .toolbar {
+            position: fixed;
+            top: 60px;
+            background: white;
+            padding: 10px 20px;
+            width: 100%;
+            z-index: 999;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
 
-    .image-card {
-      display: inline-block;
-      width: 120px;
-      height: 120px;
-      object-fit: cover;
-      border: 1px solid #aaa;
-      border-radius: 6px;
-      margin: 5px;
-      cursor: zoom-in;
-    }
+        #editor {
+            background: white;
+            min-height: 500px;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 130px;
+            line-height: 1.6;
+            font-size: 18px;
+            border: 1px solid #ddd;
+            outline: none;
+        }
 
-    #imageModal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0,0,0,0.9);
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-    }
+        .folder, .lesson {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
 
-    #imageModal img {
-      max-width: 90%;
-      max-height: 90%;
-    }
+        .folder:hover, .lesson:hover { 
+            transform: translateX(-5px); 
+        }
 
-    #imageModal .close-btn {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      background: #e74c3c;
-      color: white;
-      padding: 8px 15px;
-      font-size: 16px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-  </style>
+        .title-box { 
+            background: #ecf0f1; 
+            border-right: 4px solid #3498db; 
+            padding: 15px; 
+            margin: 20px 0; 
+        }
+
+        .question-box { 
+            background: #fcf3cf; 
+            border-right: 4px solid #f1c40f; 
+            padding: 15px; 
+            margin: 20px 0; 
+        }
+
+        .answer-box { 
+            background: #d4efdf; 
+            border-right: 4px solid #2ecc71; 
+            padding: 15px; 
+            margin: 20px 0; 
+        }
+
+        .image-card {
+            display: inline-block;
+            width: 150px;
+            height: 150px;
+            margin: 5px;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: 1px solid #ddd;
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .fullscreen-image {
+            position: fixed;
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0;
+            background: rgba(0,0,0,0.97);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            flex-direction: column;
+        }
+
+        .fullscreen-image img {
+            max-width: 90%;
+            max-height: 80%;
+            object-fit: contain;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .image-controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 20px;
+        }
+
+        .control-btn {
+            width: 30px;
+            height: 30px;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            border: none;
+            border-radius: 50%;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            min-width: 60px;
+            transition: all 0.2s;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+    </style>
 </head>
 <body>
+    <header><h1>كشكولي</h1></header>
 
-  <header>محرر كشكولي المطور</header>
+    <main>
+        <!-- قسم المواد الدراسية -->
+        <section id="foldersPage">
+            <h2>المواد الدراسية</h2>
+            <div id="foldersList"></div>
+            <button onclick="addFolder()">+ مادة جديدة</button>
+        </section>
 
-  <div class="toolbar">
-    <button onclick="document.getElementById('imageInput').click()">🖼️ إدراج صورة</button>
-    <input type="file" id="imageInput" accept="image/*" hidden>
-    <button onclick="document.execCommand('bold')">عريض</button>
-    <button onclick="document.execCommand('italic')">مائل</button>
-    <button onclick="document.execCommand('underline')">تحته خط</button>
-    <input type="color" onchange="document.execCommand('foreColor', false, this.value)">
-  </div>
+        <!-- قسم الدروس -->
+        <section id="lessonsPage" style="display:none;">
+            <button onclick="showPage('foldersPage')">← الرجوع</button>
+            <h2 id="currentFolderTitle"></h2>
+            <div id="lessonsList"></div>
+            <button onclick="addLesson()">+ درس جديد</button>
+        </section>
 
-  <div id="editor" contenteditable="true"></div>
+        <!-- قسم المحرر -->
+        <section id="editorPage" style="display:none;">
+            <button onclick="showPage('lessonsPage')">← الرجوع</button>
+            <h2 id="lessonTitle"></h2>
 
-  <!-- عرض الصورة بالحجم الكامل -->
-  <div id="imageModal">
-    <button class="close-btn" onclick="closeImage()">إغلاق</button>
-    <img id="modalImg" src="">
-  </div>
+            <div class="toolbar">
+                <button onclick="insertTemplate('title-box', 'عنوان جديد')">📌 عنوان</button>
+                <button onclick="insertTemplate('question-box', 'سؤال جديد')">❓ سؤال</button>
+                <button onclick="insertTemplate('answer-box', 'إجابة')">💡 إجابة</button>
+                <button onclick="execCommand('bold')">عريض</button>
+                <button onclick="execCommand('italic')">مائل</button>
+                <input type="color" onchange="changeTextColor(this.value)">
+                <input type="file" id="imageInput" accept="image/*">
+                <button onclick="document.getElementById('imageInput').click()">🖼️ صورة</button>
+                <button onclick="saveContent()">💾 حفظ</button>
+            </div>
 
-  <script>
-    const editor = document.getElementById("editor");
-    const imageInput = document.getElementById("imageInput");
-    const imageModal = document.getElementById("imageModal");
-    const modalImg = document.getElementById("modalImg");
+            <div id="editor" contenteditable="true"></div>
+        </section>
+    </main>
 
-    // استرجاع المحتوى عند فتح الصفحة
-    window.addEventListener("load", () => {
-      const saved = localStorage.getItem("editorContent");
-      if (saved) editor.innerHTML = saved;
-    });
+    <script>
+        // بيانات التطبيق
+        let folders = JSON.parse(localStorage.getItem('folders')) || [];
+        let currentFolderIndex = null;
+        let currentLessonIndex = null;
 
-    // الحفظ التلقائي عند أي تعديل
-    editor.addEventListener("input", () => {
-      localStorage.setItem("editorContent", editor.innerHTML);
-    });
+        // وظائف إدارة الصفحات
+        function showPage(pageId) {
+            document.querySelectorAll('section').forEach(s => s.style.display = 'none');
+            document.getElementById(pageId).style.display = 'block';
+        }
 
-    // إدراج الصورة في موضع المؤشر كبطاقة
-    imageInput.addEventListener("change", function () {
-      const file = this.files[0];
-      if (file && file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          const img = document.createElement("img");
-          img.src = e.target.result;
-          img.className = "image-card";
-          img.onclick = () => showImage(img.src);
+        // إدارة المواد الدراسية
+        function addFolder() {
+            const name = prompt('أدخل اسم المادة:');
+            if (name) {
+                folders.push({ 
+                    name, 
+                    lessons: [] 
+                });
+                saveData();
+                renderFolders();
+            }
+        }
 
-          const selection = window.getSelection();
-          if (!selection.rangeCount) return;
+        function renderFolders() {
+            const list = document.getElementById('foldersList');
+            list.innerHTML = folders.map((folder, index) => `
+                <div class="folder" onclick="openFolder(${index})">
+                    ${folder.name}
+                    <div class="actions">
+                        <button onclick="event.stopPropagation(); deleteFolder(${index})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
 
-          const range = selection.getRangeAt(0);
-          range.deleteContents();
-          range.insertNode(img);
-          range.setStartAfter(img);
-          range.setEndAfter(img);
-          selection.removeAllRanges();
-          selection.addRange(range);
+        function openFolder(index) {
+            currentFolderIndex = index;
+            document.getElementById('currentFolderTitle').textContent = folders[index].name;
+            renderLessons();
+            showPage('lessonsPage');
+        }
 
-          editor.focus();
-          localStorage.setItem("editorContent", editor.innerHTML);
+        function deleteFolder(index) {
+            if (confirm('هل تريد حذف هذه المادة؟')) {
+                folders.splice(index, 1);
+                saveData();
+                renderFolders();
+            }
+        }
+
+        // إدارة الدروس
+        function addLesson() {
+            const name = prompt('أدخل اسم الدرس:');
+            if (name) {
+                folders[currentFolderIndex].lessons.push({ 
+                    name, 
+                    content: '' 
+                });
+                saveData();
+                renderLessons();
+            }
+        }
+
+        function renderLessons() {
+            const list = document.getElementById('lessonsList');
+            list.innerHTML = folders[currentFolderIndex].lessons.map((lesson, index) => `
+                <div class="lesson" onclick="openLesson(${index})">
+                    ${lesson.name}
+                    <div class="actions">
+                        <button onclick="event.stopPropagation(); deleteLesson(${index})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openLesson(index) {
+            currentLessonIndex = index;
+            const lesson = folders[currentFolderIndex].lessons[index];
+            document.getElementById('lessonTitle').textContent = lesson.name;
+            document.getElementById('editor').innerHTML = lesson.content;
+            
+            // إضافة أحداث النقر للصور
+            document.querySelectorAll('#editor .image-card').forEach(card => {
+                card.onclick = () => showFullscreenImage(card.querySelector('img').src);
+            });
+            
+            showPage('editorPage');
+        }
+
+        function deleteLesson(index) {
+            if (confirm('هل تريد حذف هذا الدرس؟')) {
+                folders[currentFolderIndex].lessons.splice(index, 1);
+                saveData();
+                renderLessons();
+            }
+        }
+
+        // وظائف المحرر
+        function insertTemplate(className, placeholder) {
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0) return;
+            
+            const range = selection.getRangeAt(0);
+            const div = document.createElement('div');
+            div.className = className;
+            div.innerHTML = placeholder;
+            
+            range.deleteContents();
+            range.insertNode(div);
+            saveContent();
+        }
+
+        function execCommand(command) {
+            document.execCommand(command);
+            saveContent();
+        }
+
+        function changeTextColor(color) {
+            document.execCommand('foreColor', false, color);
+            saveContent();
+        }
+
+        // تحميل الصور
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const container = document.createElement('div');
+                container.className = 'image-card';
+                
+                const img = new Image();
+                img.src = e.target.result;
+                
+                container.appendChild(img);
+                container.onclick = () => showFullscreenImage(img.src);
+
+                // إدراج الصورة في مكان المؤشر
+                const selection = window.getSelection();
+                const range = selection.getRangeAt(0);
+                range.deleteContents();
+                range.insertNode(container);
+                
+                saveContent();
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // عرض الصورة كاملة
+        function showFullscreenImage(src) {
+            const overlay = document.createElement('div');
+            overlay.className = 'fullscreen-image';
+            overlay.onclick = () => overlay.remove();
+
+            const img = new Image();
+            img.src = src;
+            img.style.maxWidth = '90%';
+            img.style.maxHeight = '80%';
+
+            overlay.appendChild(img);
+            document.body.appendChild(overlay);
+        }
+
+        // الحفظ التلقائي
+        function saveContent() {
+            if (currentFolderIndex !== null && currentLessonIndex !== null) {
+                folders[currentFolderIndex].lessons[currentLessonIndex].content = 
+                    document.getElementById('editor').innerHTML;
+                saveData();
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('folders', JSON.stringify(folders));
+        }
+
+        // تهيئة التطبيق
+        window.onload = () => {
+            renderFolders();
+            showPage('foldersPage');
         };
-        reader.readAsDataURL(file);
-      }
-      this.value = "";
-    });
-
-    // فتح الصورة بالحجم الكامل
-    function showImage(src) {
-      modalImg.src = src;
-      imageModal.style.display = "flex";
-    }
-
-    function closeImage() {
-      imageModal.style.display = "none";
-      modalImg.src = "";
-    }
-  </script>
+    </script>
 </body>
 </html>
