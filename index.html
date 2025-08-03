@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>كشكولي</title>
+  <title>NOOTBOOKY</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -199,13 +199,13 @@
   </style>
 </head>
 <body>
-<header><h1>كشكولي</h1></header>
+<header><h1>NOOTBOOKY</h1></header>
   <main>
     <!-- صفحة المواد الدراسية -->
     <section id="foldersPage">
-      <h2>المواد الدراسية</h2>
+      <h2> الأقسام</h2>
       <div id="foldersList"></div>
-      <button onclick="addFolder()">+ مادة جديدة</button>
+      <button onclick="addFolder()">+  NEW FOLDER📁</button>
     </section>
 
     <!-- صفحة الدروس داخل مادة -->
@@ -213,7 +213,7 @@
       <button class="back-btn" onclick="showPage('foldersPage')">← الرجوع</button>
       <h2 id="currentFolderTitle"></h2>
       <div id="lessonsList"></div>
-      <button onclick="addLesson()">+ درس جديد</button>
+      <button onclick="addLesson()">+ موضوع جديد</button>
     </section>
 
     <!-- صفحة المحرر -->
@@ -224,15 +224,15 @@
       <div class="toolbar">
         <button onclick="insertTemplate('title-box', 'عنوان جديد')">📌 عنوان</button>
         <button onclick="insertTemplate('question-box', 'سؤال جديد')">❓ سؤال</button>
-        <button onclick="insertTemplate('answer-box', 'إجابة')">💡 إجابة</button>
+        
         <button onclick="execCommand('bold')">عريض</button>
-        <button onclick="execCommand('italic')">مائل</button>
+        
         <button onclick="execCommand('underline')">﹍</button>
         <input type="color" onchange="changeTextColor(this.value)">
         <input type="color" id="highlighterColor" onchange="setHighlighterColor(this.value)">
         <button onclick="applyHighlight()">🖍️ تمييز</button>
         <input type="file" id="imageInput" accept="image/*" hidden>
-        <button onclick="uploadImage()">🖼️ صورة</button>
+        
         <button onclick="toggleReadingMode()">📖 قراءة</button>
         <div class="search-box">
           <input type="text" id="searchInput" placeholder="🔍 ابحث في النص..." oninput="highlightSearch()">
