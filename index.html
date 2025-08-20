@@ -213,7 +213,6 @@
         </div>
 
         <div class="group">
-          <!-- اختيار اللون بدون تطبيق مباشر -->
           <input type="color" id="textColorPicker" value="#000000" title="اختر لون النص">
           <button onmousedown="noFocus(event)" onclick="applyTextColor()">تطبيق اللون</button>
         </div>
@@ -278,7 +277,7 @@
           <button class="icon-btn" onclick="event.stopPropagation(); deleteFolder(${i})">🗑️</button>
         </div>
       </div>
-    ").join('');
+    `).join('');  // ← إصلاح الإغلاق هنا
   }
 
   function openFolder(i) {
@@ -305,6 +304,7 @@
 
   // ====== الدروس + إعادة الترتيب ======
   function addLesson() {
+    if (currentFolderIndex === null) return;
     const name = prompt('أدخل اسم الدرس:');
     if (name) {
       folders[currentFolderIndex].lessons.push({ name, content: '' });
@@ -454,7 +454,7 @@
     if (range) {
       range.deleteContents();
       range.insertNode(div);
-      // بعد الإدراج نضيف سطر جديد عادي بعد البوكس بحيث Enter يعمل طبيعي
+      // سطر جديد عادي بعد البوكس
       const br = document.createElement('br');
       div.after(br);
     } else {
@@ -462,7 +462,6 @@
       editor.appendChild(document.createElement('br'));
     }
 
-    // حفظ + تركيز على المحرر لمنع تكرار الضغط عند Enter
     saveContent();
     setTimeout(focusEditor, 0);
   }
@@ -472,7 +471,6 @@
     saveContent();
   }
 
-  // زر تطبيق لون النص (لا يحدث شيء بمجرد اختيار اللون)
   function applyTextColor(){
     const color = document.getElementById('textColorPicker').value || '#000000';
     document.execCommand('styleWithCSS', false, true);
@@ -562,7 +560,6 @@
     currentHighlightIndex = -1;
     if (!text) return;
 
-    // الهروب من الأحرف الخاصة في الـ RegExp
     const escaped = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`(${escaped})`, 'gi');
     editor.innerHTML = editor.innerHTML.replace(regex, `<span class="highlight">$1</span>`);
@@ -639,7 +636,6 @@
       focusEditor();
     };
     reader.readAsDataURL(file);
-    // إعادة تعيين المدخل ليسمح برفع نفس الملف مرة أخرى إذا لزم
     e.target.value = '';
   });
 
