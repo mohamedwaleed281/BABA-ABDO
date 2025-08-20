@@ -39,8 +39,10 @@
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
+      align-items: center;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
+    .toolbar .group { display: flex; gap: 6px; align-items: center; }
     .folder, .lesson {
       background: white;
       border-radius: 8px;
@@ -49,11 +51,10 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
       position: relative;
       cursor: pointer;
-      transition: transform 0.2s;
+      transition: transform 0.2s, background 0.2s;
     }
-    .folder:hover, .lesson:hover {
-      transform: translateX(-5px);
-    }
+    .lesson.drag-over { background:#eef7ff; }
+    .folder:hover, .lesson:hover { transform: translateX(-5px); }
     .actions {
       position: absolute;
       left: 10px;
@@ -72,10 +73,8 @@
       min-width: 60px;
       transition: all 0.2s;
     }
-    button:hover {
-      opacity: 0.9;
-      transform: scale(0.98);
-    }
+    button:hover { opacity: 0.9; transform: scale(0.98); }
+    .icon-btn { min-width:auto; padding:6px 8px; }
     #editor {
       background: white;
       min-height: 500px;
@@ -150,19 +149,8 @@
       justify-content: center;
       box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
-    .control-btn:hover {
-      background: #3498db;
-      color: white;
-      transform: scale(1.1);
-    }
-    .control-close {
-      background: #e74c3c;
-      color: white;
-      font-size: 16px;
-      width: 40px;
-      height: 30px;
-      border-radius: 6px;
-    }
+    .control-btn:hover { background: #3498db; color: white; transform: scale(1.1); }
+    .control-close { background: #e74c3c; color: white; font-size: 16px; width: 40px; height: 30px; border-radius: 6px; }
     .reading-mode-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -183,19 +171,11 @@
       z-index: 2001;
       font-weight: bold;
     }
-    .search-box {
-      margin-top: 70px;
-      display: flex;
-      gap: 5px;
-    }
-    .search-box input {
-      flex: 1;
-      padding: 6px 10px;
-      font-size: 16px;
-    }
-    .highlight {
-      background-color: yellow;
-    }
+    .search-box { margin-top: 70px; display: flex; gap: 5px; }
+    .search-box input { flex: 1; padding: 6px 10px; font-size: 16px; }
+    .highlight { background-color: yellow; }
+    .drag-handle { cursor: grab; font-size: 18px; margin-left: 6px; }
+    .back-btn { margin-bottom:10px; }
   </style>
 </head>
 <body>
@@ -221,23 +201,41 @@
       <button class="back-btn" onclick="showPage('lessonsPage')">← الرجوع</button>
       <h2 id="lessonTitle"></h2>
 
-      <div class="toolbar">
-        <button onclick="insertTemplate('title-box', 'عنوان جديد')">📌 عنوان</button>
-        <button onclick="insertTemplate('question-box', 'سؤال جديد')">❓ سؤال</button>
-        
-        <button onclick="execCommand('bold')">عريض</button>
-        
-        <button onclick="execCommand('underline')">﹍</button>
-        <input type="color" onchange="changeTextColor(this.value)">
-        <input type="color" id="highlighterColor" onchange="setHighlighterColor(this.value)">
-        <button onclick="applyHighlight()">🖍️ تمييز</button>
-        <input type="file" id="imageInput" accept="image/*" hidden>
-        
-        <button onclick="toggleReadingMode()">📖 قراءة</button>
+      <div class="toolbar" id="toolbar">
+        <div class="group">
+          <button onmousedown="noFocus(event)" onclick="insertTemplate('title-box', 'عنوان جديد')">📌 عنوان</button>
+          <button onmousedown="noFocus(event)" onclick="insertTemplate('question-box', 'سؤال جديد')">❓ سؤال</button>
+        </div>
+
+        <div class="group">
+          <button class="icon-btn" title="عريض" onmousedown="noFocus(event)" onclick="execCommand('bold')"><b>ع</b></button>
+          <button class="icon-btn" title="تحته خط" onmousedown="noFocus(event)" onclick="execCommand('underline')">﹍</button>
+        </div>
+
+        <div class="group">
+          <!-- اختيار اللون بدون تطبيق مباشر -->
+          <input type="color" id="textColorPicker" value="#000000" title="اختر لون النص">
+          <button onmousedown="noFocus(event)" onclick="applyTextColor()">تطبيق اللون</button>
+        </div>
+
+        <div class="group">
+          <input type="color" id="highlighterColor" value="#ffff00" onchange="setHighlighterColor(this.value)" title="لون التمييز">
+          <button onmousedown="noFocus(event)" onclick="applyHighlight()">🖍️ تمييز</button>
+        </div>
+
+        <div class="group">
+          <button onmousedown="noFocus(event)" onclick="uploadImage()">🖼️ صورة</button>
+          <input type="file" id="imageInput" accept="image/*" hidden>
+        </div>
+
+        <div class="group">
+          <button onmousedown="noFocus(event)" onclick="toggleReadingMode()">📖 قراءة</button>
+        </div>
+
         <div class="search-box">
           <input type="text" id="searchInput" placeholder="🔍 ابحث في النص..." oninput="highlightSearch()">
-          <button onclick="prevHighlight()">‹</button>
-          <button onclick="nextHighlight()">›</button>
+          <button class="icon-btn" onmousedown="noFocus(event)" onclick="prevHighlight()">‹</button>
+          <button class="icon-btn" onmousedown="noFocus(event)" onclick="nextHighlight()">›</button>
         </div>
       </div>
 
@@ -246,6 +244,7 @@
   </main>
 
 <script>
+  // ====== الحالة العامة ======
   let folders = JSON.parse(localStorage.getItem('folders')) || [];
   let currentFolderIndex = null;
   let currentLessonIndex = null;
@@ -254,11 +253,13 @@
   let scale = 1, translateX = 0, translateY = 0;
   let searchHighlights = [], currentHighlightIndex = -1;
 
+  // ====== تنقل الصفحات ======
   function showPage(pageId) {
     document.querySelectorAll('section').forEach(s => s.style.display = 'none');
     document.getElementById(pageId).style.display = 'block';
   }
 
+  // ====== المواد ======
   function addFolder() {
     const name = prompt('أدخل اسم المادة:');
     if (name) {
@@ -271,13 +272,13 @@
     const list = document.getElementById('foldersList');
     list.innerHTML = folders.map((f, i) => `
       <div class="folder" onclick="openFolder(${i})">
-        ${f.name}
+        ${escapeHtml(f.name)}
         <div class="actions">
-          <button onclick="event.stopPropagation(); editFolder(${i})">✏️</button>
-          <button onclick="event.stopPropagation(); deleteFolder(${i})">🗑️</button>
+          <button class="icon-btn" onclick="event.stopPropagation(); editFolder(${i})">✏️</button>
+          <button class="icon-btn" onclick="event.stopPropagation(); deleteFolder(${i})">🗑️</button>
         </div>
       </div>
-    `).join('');
+    ").join('');
   }
 
   function openFolder(i) {
@@ -302,6 +303,7 @@
     }
   }
 
+  // ====== الدروس + إعادة الترتيب ======
   function addLesson() {
     const name = prompt('أدخل اسم الدرس:');
     if (name) {
@@ -312,12 +314,26 @@
 
   function renderLessons() {
     const list = document.getElementById('lessonsList');
-    list.innerHTML = folders[currentFolderIndex].lessons.map((l, i) => `
-      <div class="lesson" onclick="openLesson(${i})">
-        ${l.name}
-        <div class="actions">
-          <button onclick="event.stopPropagation(); editLesson(${i})">✏️</button>
-          <button onclick="event.stopPropagation(); deleteLesson(${i})">🗑️</button>
+    const lessons = folders[currentFolderIndex].lessons;
+
+    list.innerHTML = lessons.map((l, i) => `
+      <div class="lesson" 
+           onclick="openLesson(${i})"
+           draggable="true"
+           ondragstart="onDragStart(event, ${i})"
+           ondragover="onDragOver(event, ${i})"
+           ondragleave="onDragLeave(event, ${i})"
+           ondrop="onDrop(event, ${i})"
+           data-index="${i}">
+        <span class="drag-handle" title="اسحب لإعادة الترتيب">☰</span>
+        ${escapeHtml(l.name)}
+        <div class="actions" onclick="event.stopPropagation()">
+          <button class="icon-btn" title="أعلى" onclick="moveLessonUp(${i})">↑</button>
+          <button class="icon-btn" title="أسفل" onclick="moveLessonDown(${i})">↓</button>
+          <button class="icon-btn" title="إلى الأعلى" onclick="moveLessonToTop(${i})">⤒</button>
+          <button class="icon-btn" title="إلى الأسفل" onclick="moveLessonToBottom(${i})">⤓</button>
+          <button class="icon-btn" onclick="editLesson(${i})">✏️</button>
+          <button class="icon-btn" onclick="deleteLesson(${i})">🗑️</button>
         </div>
       </div>
     `).join('');
@@ -327,15 +343,16 @@
     currentLessonIndex = i;
     const lesson = folders[currentFolderIndex].lessons[i];
     document.getElementById('lessonTitle').textContent = lesson.name;
-    document.getElementById('editor').innerHTML = lesson.content;
+    document.getElementById('editor').innerHTML = lesson.content || '';
 
     setTimeout(() => {
       document.querySelectorAll('#editor img').forEach(img => {
         img.onclick = () => showFullscreenImage(img.src);
       });
-    }, 100);
+    }, 0);
 
     showPage('editorPage');
+    focusEditor();
   }
 
   function editLesson(i) {
@@ -343,6 +360,7 @@
     if (newName) {
       folders[currentFolderIndex].lessons[i].name = newName;
       saveData(); renderLessons();
+      if (currentLessonIndex === i) document.getElementById('lessonTitle').textContent = newName;
     }
   }
 
@@ -350,24 +368,103 @@
     if (confirm('هل تريد حذف هذا الدرس؟')) {
       folders[currentFolderIndex].lessons.splice(i, 1);
       saveData(); renderLessons();
+      if (currentLessonIndex === i) showPage('lessonsPage');
     }
   }
 
-  function insertTemplate(className, placeholder) {
+  // أزرار إعادة الترتيب
+  function moveLessonUp(i){
+    if (i<=0) return;
+    const lessons = folders[currentFolderIndex].lessons;
+    [lessons[i-1], lessons[i]] = [lessons[i], lessons[i-1]];
+    saveData(); renderLessons();
+  }
+  function moveLessonDown(i){
+    const lessons = folders[currentFolderIndex].lessons;
+    if (i>=lessons.length-1) return;
+    [lessons[i+1], lessons[i]] = [lessons[i], lessons[i+1]];
+    saveData(); renderLessons();
+  }
+  function moveLessonToTop(i){
+    const lessons = folders[currentFolderIndex].lessons;
+    const item = lessons.splice(i,1)[0];
+    lessons.unshift(item);
+    saveData(); renderLessons();
+  }
+  function moveLessonToBottom(i){
+    const lessons = folders[currentFolderIndex].lessons;
+    const item = lessons.splice(i,1)[0];
+    lessons.push(item);
+    saveData(); renderLessons();
+  }
+
+  // سحب وإفلات
+  let draggedIndex = null;
+  function onDragStart(e, i){
+    draggedIndex = i;
+    e.dataTransfer.effectAllowed = 'move';
+  }
+  function onDragOver(e, i){
+    e.preventDefault();
+    const el = e.currentTarget;
+    el.classList.add('drag-over');
+    e.dataTransfer.dropEffect = 'move';
+  }
+  function onDragLeave(e, i){
+    e.currentTarget.classList.remove('drag-over');
+  }
+  function onDrop(e, i){
+    e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+    if (draggedIndex===null || draggedIndex===i) return;
+    const lessons = folders[currentFolderIndex].lessons;
+    const item = lessons.splice(draggedIndex,1)[0];
+    lessons.splice(i,0,item);
+    draggedIndex = null;
+    saveData(); renderLessons();
+  }
+
+  // ====== أدوات المحرر ======
+  function noFocus(e){ // يمنع تركيز الزر حتى لا يعاد تنفيذه عند Enter
+    e.preventDefault();
+  }
+
+  function focusEditor(){
+    const editor = document.getElementById('editor');
+    editor.focus();
+    // نقل المؤشر لآخر المحتوى
+    const range = document.createRange();
+    range.selectNodeContents(editor);
+    range.collapse(false);
     const sel = window.getSelection();
-    if (!sel.rangeCount) return;
-    const range = sel.getRangeAt(0);
-    const div = document.createElement('div');
-    div.className = className;
-    div.contentEditable = true;
-    div.innerHTML = placeholder;
-    range.deleteContents();
-    range.insertNode(div);
-    range.setStartAfter(div);
-    range.collapse(true);
     sel.removeAllRanges();
     sel.addRange(range);
+  }
+
+  function insertTemplate(className, placeholder) {
+    const editor = document.getElementById('editor');
+    const sel = window.getSelection();
+    const range = sel.rangeCount ? sel.getRangeAt(0) : null;
+
+    const div = document.createElement('div');
+    div.className = className;
+    div.contentEditable = "true";
+    div.innerHTML = placeholder;
+
+    if (range) {
+      range.deleteContents();
+      range.insertNode(div);
+      // بعد الإدراج نضيف سطر جديد عادي بعد البوكس بحيث Enter يعمل طبيعي
+      const br = document.createElement('br');
+      div.after(br);
+    } else {
+      editor.appendChild(div);
+      editor.appendChild(document.createElement('br'));
+    }
+
+    // حفظ + تركيز على المحرر لمنع تكرار الضغط عند Enter
     saveContent();
+    setTimeout(focusEditor, 0);
   }
 
   function execCommand(cmd) {
@@ -375,19 +472,22 @@
     saveContent();
   }
 
-  function setHighlighterColor(c) {
-    highlightColor = c;
+  // زر تطبيق لون النص (لا يحدث شيء بمجرد اختيار اللون)
+  function applyTextColor(){
+    const color = document.getElementById('textColorPicker').value || '#000000';
+    document.execCommand('styleWithCSS', false, true);
+    document.execCommand('foreColor', false, color);
+    saveContent();
+    focusEditor();
   }
+
+  function setHighlighterColor(c) { highlightColor = c; }
 
   function applyHighlight() {
     document.execCommand('styleWithCSS', false, true);
     document.execCommand('backColor', false, highlightColor);
     saveContent();
-  }
-
-  function changeTextColor(c) {
-    document.execCommand('foreColor', false, c);
-    saveContent();
+    focusEditor();
   }
 
   function uploadImage() {
@@ -420,14 +520,14 @@
   function moveImage(x, y) {
     translateX += x;
     translateY += y;
-    document.querySelector('.fullscreen-image img').style.transform =
-      `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+    const img = document.querySelector('.fullscreen-image img');
+    if (img) img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
   }
 
   function zoom(factor) {
     scale *= factor;
-    document.querySelector('.fullscreen-image img').style.transform =
-      `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+    const img = document.querySelector('.fullscreen-image img');
+    if (img) img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
   }
 
   function toggleReadingMode() {
@@ -444,23 +544,27 @@
         img.onclick = () => showFullscreenImage(img.src);
       });
     } else {
-      document.querySelector('.reading-mode-overlay').remove();
+      const exist = document.querySelector('.reading-mode-overlay');
+      if (exist) exist.remove();
     }
     isReadingMode = !isReadingMode;
   }
 
-
-   function highlightSearch() {
+  // ====== البحث مع تمييز ======
+  function highlightSearch() {
     const input = document.getElementById('searchInput');
     const text = input.value.trim();
     const editor = document.getElementById('editor');
     const content = editor.innerHTML;
+    // إزالة التحديدات السابقة
     editor.innerHTML = content.replace(/<span class="highlight">(.*?)<\/span>/g, '$1');
     searchHighlights = [];
     currentHighlightIndex = -1;
     if (!text) return;
 
-    const regex = new RegExp(`(${text})`, 'gi');
+    // الهروب من الأحرف الخاصة في الـ RegExp
+    const escaped = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escaped})`, 'gi');
     editor.innerHTML = editor.innerHTML.replace(regex, `<span class="highlight">$1</span>`);
     searchHighlights = [...editor.querySelectorAll('.highlight')];
   }
@@ -477,6 +581,7 @@
     searchHighlights[currentHighlightIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
+  // ====== الحفظ ======
   function saveContent() {
     if (currentFolderIndex !== null && currentLessonIndex !== null) {
       folders[currentFolderIndex].lessons[currentLessonIndex].content =
@@ -489,10 +594,18 @@
     localStorage.setItem('folders', JSON.stringify(folders));
   }
 
+  // ====== مساعدات ======
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, s => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[s]));
+  }
+
   // حفظ تلقائي عند الكتابة أو اللصق
-  document.getElementById('editor').addEventListener('input', saveContent);
-  document.getElementById('editor').addEventListener('paste', () => setTimeout(saveContent, 100));
-  document.getElementById('editor').addEventListener('blur', saveContent);
+  const editorEl = document.getElementById('editor');
+  editorEl.addEventListener('input', saveContent);
+  editorEl.addEventListener('paste', () => setTimeout(saveContent, 100));
+  editorEl.addEventListener('blur', saveContent);
 
   // إدراج الصور عند المؤشر كـ thumbnail
   document.getElementById('imageInput').addEventListener('change', function(e) {
@@ -520,17 +633,19 @@
         sel.removeAllRanges();
         sel.addRange(range);
       } else {
-        document.getElementById('editor').appendChild(img);
+        editorEl.appendChild(img);
       }
       saveContent();
+      focusEditor();
     };
     reader.readAsDataURL(file);
+    // إعادة تعيين المدخل ليسمح برفع نفس الملف مرة أخرى إذا لزم
+    e.target.value = '';
   });
 
+  // بدء
   renderFolders();
   showPage('foldersPage');
 </script>
 </body>
-</html> 
-    
-    
+</html>
