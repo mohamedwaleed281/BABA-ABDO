@@ -1,647 +1,442 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NOOTBOOKY</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Tajawal', sans-serif;
-      background: #f8f9fa;
-      color: #2c3e50;
-      direction: rtl;
-    }
-    header {
-      background: #2c3e50;
-      color: white;
-      padding: 1rem;
-      position: fixed;
-      top: 0;
-      width: 100%;
-      height: 60px;
-      z-index: 1000;
-      text-align: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    main {
-      margin-top: 60px;
-      padding: 20px;
-      min-height: calc(100vh - 60px);
-    }
-    .toolbar {
-      position: fixed;
-      top: 60px;
-      background: white;
-      padding: 10px 20px;
-      width: 100%;
-      z-index: 999;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .toolbar .group { display: flex; gap: 6px; align-items: center; }
-    .folder, .lesson {
-      background: white;
-      border-radius: 8px;
-      padding: 15px;
-      margin: 10px 0;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      position: relative;
-      cursor: pointer;
-      transition: transform 0.2s, background 0.2s;
-    }
-    .lesson.drag-over { background:#eef7ff; }
-    .folder:hover, .lesson:hover { transform: translateX(-5px); }
-    .actions {
-      position: absolute;
-      left: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      display: flex;
-      gap: 5px;
-    }
-    button {
-      background-color: #3498db;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 5px;
-      cursor: pointer;
-      min-width: 60px;
-      transition: all 0.2s;
-    }
-    button:hover { opacity: 0.9; transform: scale(0.98); }
-    .icon-btn { min-width:auto; padding:6px 8px; }
-    #editor {
-      background: white;
-      min-height: 500px;
-      padding: 30px;
-      border-radius: 10px;
-      margin-top: 130px;
-      line-height: 1.6;
-      font-size: 18px;
-      border: 1px solid #ddd;
-      outline: none;
-    }
-    .title-box {
-      background: #ecf0f1;
-      border-right: 4px solid #3498db;
-      padding: 15px;
-      margin: 20px 0;
-    }
-    .question-box {
-      background: #fcf3cf;
-      border-right: 4px solid #f1c40f;
-      padding: 15px;
-      margin: 20px 0;
-    }
-    .answer-box {
-      background: #d4efdf;
-      border-right: 4px solid #2ecc71;
-      padding: 15px;
-      margin: 20px 0;
-    }
-    .image-thumb {
-      max-width: 150px;
-      max-height: 150px;
-      border-radius: 8px;
-      margin: 10px 0;
-      cursor: zoom-in;
-      display: block;
-    }
-    .fullscreen-image {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.97);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 3000;
-      flex-direction: column;
-    }
-    .fullscreen-image img {
-      max-width: 90%;
-      max-height: 80%;
-      object-fit: contain;
-      cursor: pointer;
-      transition: transform 0.3s ease;
-    }
-    .image-controls {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 6px;
-      margin-top: 20px;
-    }
-    .control-btn {
-      width: 30px;
-      height: 30px;
-      background: rgba(255,255,255,0.9);
-      color: #333;
-      border: none;
-      border-radius: 50%;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
-    .control-btn:hover { background: #3498db; color: white; transform: scale(1.1); }
-    .control-close { background: #e74c3c; color: white; font-size: 16px; width: 40px; height: 30px; border-radius: 6px; }
-    .reading-mode-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: white;
-      z-index: 2000;
-      padding: 60px 20px 20px;
-      overflow-y: auto;
-    }
-    .close-reading-mode {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      background: #e74c3c;
-      color: white;
-      padding: 10px 15px;
-      border-radius: 5px;
-      cursor: pointer;
-      z-index: 2001;
-      font-weight: bold;
-    }
-    .search-box { margin-top: 70px; display: flex; gap: 5px; }
-    .search-box input { flex: 1; padding: 6px 10px; font-size: 16px; }
-    .highlight { background-color: yellow; }
-    .drag-handle { cursor: grab; font-size: 18px; margin-left: 6px; }
-    .back-btn { margin-bottom:10px; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>بابا عبده</title>
+<style>
+  body{font-family:Arial, sans-serif; direction:rtl; margin:0; padding:0; background:#f8f8f8;}
+  header{background:#ff6600; color:#fff; padding:15px; text-align:center; position:relative;}
+  .small-text{position:absolute; top:5px; left:10px; font-size:12px; color:#fff;}
+  main{padding:20px;}
+  .btn{padding:6px 12px; margin:5px; border:none; border-radius:6px; cursor:pointer; font-size:14px;}
+  .btn-primary{background:#28a745; color:#fff;}
+  .btn-secondary{background:#6c757d; color:#fff;}
+  .btn-danger{background:#dc3545; color:#fff;}
+  .btn-warning{background:#ffc107; color:#000;}
+  .btn:hover{opacity:.9}
+  #tablesContainer{display:flex; flex-wrap:wrap; justify-content:center; margin-top:20px;}
+  .table{width:120px; height:120px; background:#fff; border:2px solid #ff6600; margin:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; border-radius:10px; transition:transform .2s; font-weight:bold; position:relative;}
+  .table:hover{transform:scale(1.05);}
+  .rename-btn{position:absolute; bottom:5px; right:5px; font-size:12px; padding:2px 6px;}
+  .modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; z-index:9999;}
+  .modal{background:#fff; padding:18px; border-radius:10px; width:92%; max-width:420px; text-align:right;}
+  .modal input, .modal textarea{width:100%; padding:8px; margin:5px 0; box-sizing:border-box; border:1px solid #ccc; border-radius:6px;}
+  /* Orders */
+  .dropdown-container{margin-top:20px;}
+  #categoryDropdown{width:100%; padding:8px; font-size:14px; border-radius:6px; border:1px solid #ccc;}
+  .items-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(120px,1fr)); gap:10px; margin-top:10px;}
+  .card{background:#fff; padding:10px; border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,.1); display:flex; flex-direction:column; gap:8px;}
+  .orders-list{list-style:none; padding:0; margin-top:20px;}
+  .orders-list li{background:#fff; padding:10px; margin:5px 0; border-radius:8px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;}
+  .note{width:100%; font-size:12px; color:#555; text-align:right; margin-top:5px; background:#fafafa; padding:6px; border-radius:6px;}
+  /* Reports */
+  .report-list{list-style:none; padding:0; margin-top:20px;}
+  .report-list li{background:#fff; padding:10px; margin:5px 0; border-radius:8px; display:flex; justify-content:space-between;}
+  .muted{color:#666; font-size:13px;}
+  .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+</style>
 </head>
 <body>
-<header><h1>NOOTBOOKY</h1></header>
-  <main>
-    <!-- صفحة المواد الدراسية -->
-    <section id="foldersPage">
-      <h2> الأقسام</h2>
-      <div id="foldersList"></div>
-      <button onclick="addFolder()">+  NEW FOLDER📁</button>
-    </section>
+<header>
+  <h1>بابا عبده</h1>
+  <span class="small-text">محمد وليد سعيد حسن عبد الهادي</span>
+</header>
 
-    <!-- صفحة الدروس داخل مادة -->
-    <section id="lessonsPage" style="display:none;">
-      <button class="back-btn" onclick="showPage('foldersPage')">← الرجوع</button>
-      <h2 id="currentFolderTitle"></h2>
-      <div id="lessonsList"></div>
-      <button onclick="addLesson()">+ موضوع جديد</button>
-    </section>
+<main id="main-content">
+  <button class="btn btn-primary" onclick="createTables()">إنشاء ترابيزات</button>
+  <button class="btn btn-secondary" onclick="manageMenu()">إدارة المنيو</button>
+  <button class="btn btn-warning" onclick="openReportLogin()">التقارير</button>
+  <div id="tablesContainer"></div>
+</main>
 
-    <!-- صفحة المحرر -->
-    <section id="editorPage" style="display:none;">
-      <button class="back-btn" onclick="showPage('lessonsPage')">← الرجوع</button>
-      <h2 id="lessonTitle"></h2>
+<!-- Note Modal -->
+<div class="modal-overlay" id="noteModal">
+  <div class="modal">
+    <h3>إضافة / تعديل ملاحظة</h3>
+    <textarea id="noteInput" rows="3" placeholder="اكتب الملاحظة..."></textarea>
+    <div class="row">
+      <button class="btn btn-warning" onclick="quickNote('مقصوصة')">مقصوصة</button>
+      <button class="btn btn-warning" onclick="quickNote('اسباجتي')">اسباجتي</button>
+    </div>
+    <div style="text-align:left; margin-top:10px;">
+      <button class="btn btn-primary" onclick="saveNote()">حفظ</button>
+      <button class="btn btn-secondary" onclick="closeNoteModal()">إلغاء</button>
+    </div>
+  </div>
+</div>
 
-      <div class="toolbar" id="toolbar">
-        <div class="group">
-          <button onmousedown="noFocus(event)" onclick="insertTemplate('title-box', 'عنوان جديد')">📌 عنوان</button>
-          <button onmousedown="noFocus(event)" onclick="insertTemplate('question-box', 'سؤال جديد')">❓ سؤال</button>
-        </div>
+<!-- Report Login Modal -->
+<div class="modal-overlay" id="reportLoginModal">
+  <div class="modal">
+    <h3>تسجيل الدخول للتقارير</h3>
+    <input type="password" id="reportPassword" placeholder="أدخل كلمة المرور"/>
+    <div style="text-align:left; margin-top:10px;">
+      <button class="btn btn-primary" onclick="checkReportPassword()">دخول</button>
+      <button class="btn btn-secondary" onclick="closeReportLogin()">إلغاء</button>
+    </div>
+    <p class="muted">كلمة المرور الثابتة: </p>
+  </div>
+</div>
 
-        <div class="group">
-          <button class="icon-btn" title="عريض" onmousedown="noFocus(event)" onclick="execCommand('bold')"><b>ع</b></button>
-          <button class="icon-btn" title="تحته خط" onmousedown="noFocus(event)" onclick="execCommand('underline')">﹍</button>
-        </div>
-
-        <div class="group">
-          <input type="color" id="textColorPicker" value="#000000" title="اختر لون النص">
-          <button onmousedown="noFocus(event)" onclick="applyTextColor()">تطبيق اللون</button>
-        </div>
-
-        <div class="group">
-          <input type="color" id="highlighterColor" value="#ffff00" onchange="setHighlighterColor(this.value)" title="لون التمييز">
-          <button onmousedown="noFocus(event)" onclick="applyHighlight()">🖍️ تمييز</button>
-        </div>
-
-        <div class="group">
-          <button onmousedown="noFocus(event)" onclick="uploadImage()">🖼️ صورة</button>
-          <input type="file" id="imageInput" accept="image/*" hidden>
-        </div>
-
-        <div class="group">
-          <button onmousedown="noFocus(event)" onclick="toggleReadingMode()">📖 قراءة</button>
-        </div>
-
-        <div class="search-box">
-          <input type="text" id="searchInput" placeholder="🔍 ابحث في النص..." oninput="highlightSearch()">
-          <button class="icon-btn" onmousedown="noFocus(event)" onclick="prevHighlight()">‹</button>
-          <button class="icon-btn" onmousedown="noFocus(event)" onclick="nextHighlight()">›</button>
-        </div>
-      </div>
-
-      <div id="editor" contenteditable="true"></div>
-    </section>
-  </main>
+<!-- Confirm Transfer Modal -->
+<div class="modal-overlay" id="transferModal">
+  <div class="modal">
+    <h3>تحويل الطلبات للتقرير</h3>
+    <p>سيتم تحويل الطلبات للتقرير ثم حذفها من الطاولة.</p>
+    <div style="text-align:left; margin-top:10px;">
+      <button class="btn btn-primary" onclick="confirmTransfer()">نعم</button>
+    </div>
+  </div>
+</div>
 
 <script>
-  // ====== الحالة العامة ======
-  let folders = JSON.parse(localStorage.getItem('folders')) || [];
-  let currentFolderIndex = null;
-  let currentLessonIndex = null;
-  let highlightColor = '#ffff00';
-  let isReadingMode = false;
-  let scale = 1, translateX = 0, translateY = 0;
-  let searchHighlights = [], currentHighlightIndex = -1;
+/* ===================== Helpers / Storage ===================== */
+const LS = {
+  get: (k, def=null) => {
+    try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : (def===null?null:def); }
+    catch(e){ console.error('LS get error', k, e); return def; }
+  },
+  set: (k, v) => { try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){ console.error('LS set error', k, e); } },
+  remove: (k) => { localStorage.removeItem(k); }
+};
 
-  // ====== تنقل الصفحات ======
-  function showPage(pageId) {
-    document.querySelectorAll('section').forEach(s => s.style.display = 'none');
-    document.getElementById(pageId).style.display = 'block';
+// Menu structure: [{ name: 'قسم', items: [{ name, price }] }]
+const getMenu = () => LS.get('menuSections', []);
+const saveMenu = (sections) => LS.set('menuSections', sections);
+
+/* ===================== Home / Tables ===================== */
+function createTables(){
+  const num = prompt('كم عدد الترابيزات؟');
+  if(!num || isNaN(num) || num<=0) return;
+  localStorage.setItem('numTables', String(num));
+  LS.set('tableNames', Array.from({length:num}, (_,i)=>`طاولة ${i+1}`));
+  loadTables();
+}
+function loadTables(){
+  const num = +localStorage.getItem('numTables') || 0;
+  const names = LS.get('tableNames', []);
+  const c = document.getElementById('tablesContainer');
+  c.innerHTML = '';
+  for(let i=0;i<num;i++){
+    const d = document.createElement('div');
+    d.className = 'table';
+    const label = document.createElement('div');
+    label.className = 'label';
+    label.textContent = names[i] || `طاولة ${i+1}`;
+    d.appendChild(label);
+    d.onclick = ()=> openTable(i+1);
+
+    const btn = document.createElement('button');
+    btn.textContent = '✏️';
+    btn.className = 'rename-btn btn btn-warning';
+    btn.onclick = (e)=>{ e.stopPropagation(); renameTable(i); };
+    d.appendChild(btn);
+
+    c.appendChild(d);
   }
+}
+function renameTable(i){
+  const names = LS.get('tableNames', []);
+  const newName = prompt('اكتب اسم الطاولة الجديد:', '');
+  names[i] = (newName && newName.trim()) ? newName.trim() : `طاولة ${i+1}`;
+  LS.set('tableNames', names);
+  loadTables();
+}
 
-  // ====== المواد ======
-  function addFolder() {
-    const name = prompt('أدخل اسم المادة:');
-    if (name) {
-      folders.push({ name, lessons: [] });
-      saveData(); renderFolders();
-    }
+/* ===================== Menu Management ===================== */
+function manageMenu(){
+  const main = document.getElementById('main-content');
+  main.innerHTML = `
+    <h2>إدارة المنيو</h2>
+    <div class="row">
+      <input type="text" id="newCategory" placeholder="اسم القسم" />
+      <button class="btn btn-primary" onclick="addCategory()">إضافة قسم</button>
+    </div>
+    <div id="menuContainer"></div>
+    <button class="btn btn-secondary" onclick="loadHome()">رجوع</button>
+  `;
+  renderMenu();
+}
+function loadHome(){
+  document.getElementById('main-content').innerHTML = `
+    <button class="btn btn-primary" onclick="createTables()">إنشاء ترابيزات</button>
+    <button class="btn btn-secondary" onclick="manageMenu()">إدارة المنيو</button>
+    <button class="btn btn-warning" onclick="openReportLogin()">التقارير</button>
+    <div id="tablesContainer"></div>
+  `;
+  loadTables();
+}
+function renderMenu(){
+  const c = document.getElementById('menuContainer');
+  c.innerHTML = '';
+  const sections = getMenu();
+  sections.forEach((sec, ci)=>{
+    const s = document.createElement('div');
+    s.className = 'section';
+    const h = document.createElement('h3'); h.textContent = sec.name; s.appendChild(h);
+
+    sec.items.forEach((it, ii)=>{
+      const row = document.createElement('div'); row.className = 'item';
+      const span = document.createElement('span'); span.textContent = `${it.name} - ${it.price} ج`;
+      const del = document.createElement('button'); del.className='btn btn-danger'; del.textContent='حذف';
+      del.onclick = ()=> removeItem(ci, ii);
+      row.appendChild(span); row.appendChild(del);
+      s.appendChild(row);
+    });
+
+    const addBtn = document.createElement('button'); addBtn.className='btn btn-primary'; addBtn.textContent='إضافة صنف';
+    addBtn.onclick = ()=> showAddItemForm(ci);
+    const remBtn = document.createElement('button'); remBtn.className='btn btn-danger'; remBtn.textContent='حذف قسم';
+    remBtn.onclick = ()=> removeCategory(ci);
+    const addForm = document.createElement('div'); addForm.id = `addForm${ci}`; addForm.className='add-form';
+
+    s.appendChild(addBtn); s.appendChild(remBtn); s.appendChild(addForm);
+    c.appendChild(s);
+  });
+}
+function addCategory(){
+  const input = document.getElementById('newCategory');
+  const n = (input.value||'').trim();
+  if(!n) return;
+  const m = getMenu();
+  m.push({name:n, items:[]});
+  saveMenu(m); input.value=''; renderMenu();
+}
+function removeCategory(ci){
+  if(!confirm('حذف القسم؟')) return;
+  const m = getMenu(); m.splice(ci,1); saveMenu(m); renderMenu();
+}
+function showAddItemForm(ci){
+  const f = document.getElementById(`addForm${ci}`);
+  f.innerHTML = '';
+  const name = document.createElement('input'); name.type='text'; name.placeholder='اسم الصنف'; name.id=`itemName${ci}`;
+  const price = document.createElement('input'); price.type='number'; price.placeholder='السعر'; price.step='0.01'; price.id=`itemPrice${ci}`;
+  const add = document.createElement('button'); add.className='btn btn-primary'; add.textContent='إضافة';
+  add.onclick = ()=> addItem(ci);
+  f.style.display='block';
+  f.appendChild(name); f.appendChild(price); f.appendChild(add);
+}
+function addItem(ci){
+  const m = getMenu();
+  const n = (document.getElementById(`itemName${ci}`).value||'').trim();
+  const p = parseFloat(document.getElementById(`itemPrice${ci}`).value);
+  if(!n || isNaN(p)) return;
+  m[ci].items.push({name:n, price:p});
+  saveMenu(m); renderMenu();
+}
+function removeItem(ci, ii){
+  if(!confirm('حذف الصنف؟')) return;
+  const m = getMenu(); m[ci].items.splice(ii,1); saveMenu(m); renderMenu();
+}
+
+/* ===================== Orders ===================== */
+let currentNoteItem = null;
+let currentEditIndex = null;
+
+function openTable(num){
+  localStorage.setItem('currentTable', String(num));
+  const names = LS.get('tableNames', []);
+  const title = names[num-1] || `طاولة ${num}`;
+
+  const main = document.getElementById('main-content');
+  main.innerHTML = `
+    <h2>إدارة الطلبات – ${title}</h2>
+    <div class="dropdown-container"><select id="categoryDropdown"></select></div>
+    <div class="items-grid" id="menuGrid"></div>
+    <h3>الطلبات</h3>
+    <ul class="orders-list" id="ordersList"></ul>
+    <div style="text-align:right;font-weight:bold; margin-top:10px;">الإجمالي: <span id="totalPrice">0</span> ج</div>
+    <button class="btn btn-danger" onclick="askTransfer()">حذف الكل</button>
+    <button class="btn btn-secondary" onclick="loadHome()">رجوع</button>
+  `;
+  initDropdown(); displayOrders();
+}
+function initDropdown(){
+  const dd = document.getElementById('categoryDropdown');
+  dd.innerHTML = '';
+  getMenu().forEach((s, i)=>{
+    const o = document.createElement('option');
+    o.value = String(i); o.textContent = s.name;
+    dd.appendChild(o);
+  });
+  dd.onchange = renderItems;
+  if(dd.options.length) renderItems();
+}
+function renderItems(){
+  const idx = +document.getElementById('categoryDropdown').value;
+  const items = (getMenu()[idx]||{items:[]}).items;
+  const g = document.getElementById('menuGrid');
+  g.innerHTML = '';
+  items.forEach(it=>{
+    const card = document.createElement('div'); card.className='card';
+    const h = document.createElement('h4'); h.textContent = it.name;
+    const pr = document.createElement('div'); pr.className='price'; pr.textContent = `${it.price} ج`;
+    const b = document.createElement('button'); b.className='btn btn-primary'; b.textContent='+';
+    b.onclick = ()=>{ currentNoteItem = it; currentEditIndex = null; openNoteModal(); };
+    card.appendChild(h); card.appendChild(pr); card.appendChild(b);
+    g.appendChild(card);
+  });
+}
+function openNoteModal(note='', editIndex=null){
+  document.getElementById('noteInput').value = note || '';
+  currentEditIndex = (typeof editIndex==='number') ? editIndex : null;
+  document.getElementById('noteModal').style.display='flex';
+}
+function closeNoteModal(){ document.getElementById('noteModal').style.display='none'; }
+function quickNote(txt){
+  const inp = document.getElementById('noteInput');
+  inp.value = inp.value ? (inp.value + ' ' + txt) : txt;
+  inp.focus();
+}
+function saveNote(){
+  const note = (document.getElementById('noteInput').value||'').trim();
+  const t = localStorage.getItem('currentTable');
+  const k = `orders_${t}`;
+  const ord = LS.get(k, []);
+
+  if(currentEditIndex !== null){
+    ord[currentEditIndex].note = note;
+  }else{
+    const it = currentNoteItem;
+    const ex = ord.find(o=> o.name===it.name && o.note===note);
+    if(ex) ex.qty++;
+    else ord.push({name: it.name, price: it.price, qty: 1, note});
   }
+  LS.set(k, ord);
+  closeNoteModal(); displayOrders();
+}
+function displayOrders(){
+  const t = localStorage.getItem('currentTable');
+  const k = `orders_${t}`;
+  const ord = LS.get(k, []);
+  const lst = document.getElementById('ordersList');
+  lst.innerHTML = '';
+  let tot = 0;
 
-  function renderFolders() {
-    const list = document.getElementById('foldersList');
-    list.innerHTML = folders.map((f, i) => `
-      <div class="folder" onclick="openFolder(${i})">
-        ${escapeHtml(f.name)}
-        <div class="actions">
-          <button class="icon-btn" onclick="event.stopPropagation(); editFolder(${i})">✏️</button>
-          <button class="icon-btn" onclick="event.stopPropagation(); deleteFolder(${i})">🗑️</button>
-        </div>
-      </div>
-    `).join('');  // ← إصلاح الإغلاق هنا
-  }
+  ord.forEach((o, i)=>{
+    tot += o.price * o.qty;
+    const li = document.createElement('li');
 
-  function openFolder(i) {
-    currentFolderIndex = i;
-    document.getElementById('currentFolderTitle').textContent = folders[i].name;
-    renderLessons();
-    showPage('lessonsPage');
-  }
+    const left = document.createElement('span'); left.textContent = `${o.name} × ${o.qty}`;
+    const right = document.createElement('span'); right.textContent = `${o.price*o.qty} ج`;
 
-  function editFolder(i) {
-    const newName = prompt('اسم المادة الجديد:', folders[i].name);
-    if (newName) {
-      folders[i].name = newName;
-      saveData(); renderFolders();
-    }
-  }
+    const noteDiv = document.createElement('div'); noteDiv.className='note'; noteDiv.textContent = o.note||'';
 
-  function deleteFolder(i) {
-    if (confirm('هل تريد حذف هذه المادة؟')) {
-      folders.splice(i, 1);
-      saveData(); renderFolders();
-    }
-  }
+    const actions = document.createElement('div'); actions.className='row';
+    const editBtn = document.createElement('button'); editBtn.className='btn btn-secondary'; editBtn.title='تعديل الملاحظة'; editBtn.textContent='✏️';
+    editBtn.onclick = ()=> openNoteModal(o.note||'', i);
 
-  // ====== الدروس + إعادة الترتيب ======
-  function addLesson() {
-    if (currentFolderIndex === null) return;
-    const name = prompt('أدخل اسم الدرس:');
-    if (name) {
-      folders[currentFolderIndex].lessons.push({ name, content: '' });
-      saveData(); renderLessons();
-    }
-  }
+    const minusBtn = document.createElement('button'); minusBtn.className='btn btn-danger'; minusBtn.textContent='–';
+    minusBtn.onclick = ()=> removeOne(i);
 
-  function renderLessons() {
-    const list = document.getElementById('lessonsList');
-    const lessons = folders[currentFolderIndex].lessons;
+    actions.appendChild(editBtn); actions.appendChild(minusBtn);
 
-    list.innerHTML = lessons.map((l, i) => `
-      <div class="lesson" 
-           onclick="openLesson(${i})"
-           draggable="true"
-           ondragstart="onDragStart(event, ${i})"
-           ondragover="onDragOver(event, ${i})"
-           ondragleave="onDragLeave(event, ${i})"
-           ondrop="onDrop(event, ${i})"
-           data-index="${i}">
-        <span class="drag-handle" title="اسحب لإعادة الترتيب">☰</span>
-        ${escapeHtml(l.name)}
-        <div class="actions" onclick="event.stopPropagation()">
-          <button class="icon-btn" title="أعلى" onclick="moveLessonUp(${i})">↑</button>
-          <button class="icon-btn" title="أسفل" onclick="moveLessonDown(${i})">↓</button>
-          <button class="icon-btn" title="إلى الأعلى" onclick="moveLessonToTop(${i})">⤒</button>
-          <button class="icon-btn" title="إلى الأسفل" onclick="moveLessonToBottom(${i})">⤓</button>
-          <button class="icon-btn" onclick="editLesson(${i})">✏️</button>
-          <button class="icon-btn" onclick="deleteLesson(${i})">🗑️</button>
-        </div>
-      </div>
-    `).join('');
-  }
+    li.appendChild(left); li.appendChild(right);
+    li.appendChild(noteDiv);
+    li.appendChild(actions);
 
-  function openLesson(i) {
-    currentLessonIndex = i;
-    const lesson = folders[currentFolderIndex].lessons[i];
-    document.getElementById('lessonTitle').textContent = lesson.name;
-    document.getElementById('editor').innerHTML = lesson.content || '';
-
-    setTimeout(() => {
-      document.querySelectorAll('#editor img').forEach(img => {
-        img.onclick = () => showFullscreenImage(img.src);
-      });
-    }, 0);
-
-    showPage('editorPage');
-    focusEditor();
-  }
-
-  function editLesson(i) {
-    const newName = prompt('اسم الدرس الجديد:', folders[currentFolderIndex].lessons[i].name);
-    if (newName) {
-      folders[currentFolderIndex].lessons[i].name = newName;
-      saveData(); renderLessons();
-      if (currentLessonIndex === i) document.getElementById('lessonTitle').textContent = newName;
-    }
-  }
-
-  function deleteLesson(i) {
-    if (confirm('هل تريد حذف هذا الدرس؟')) {
-      folders[currentFolderIndex].lessons.splice(i, 1);
-      saveData(); renderLessons();
-      if (currentLessonIndex === i) showPage('lessonsPage');
-    }
-  }
-
-  // أزرار إعادة الترتيب
-  function moveLessonUp(i){
-    if (i<=0) return;
-    const lessons = folders[currentFolderIndex].lessons;
-    [lessons[i-1], lessons[i]] = [lessons[i], lessons[i-1]];
-    saveData(); renderLessons();
-  }
-  function moveLessonDown(i){
-    const lessons = folders[currentFolderIndex].lessons;
-    if (i>=lessons.length-1) return;
-    [lessons[i+1], lessons[i]] = [lessons[i], lessons[i+1]];
-    saveData(); renderLessons();
-  }
-  function moveLessonToTop(i){
-    const lessons = folders[currentFolderIndex].lessons;
-    const item = lessons.splice(i,1)[0];
-    lessons.unshift(item);
-    saveData(); renderLessons();
-  }
-  function moveLessonToBottom(i){
-    const lessons = folders[currentFolderIndex].lessons;
-    const item = lessons.splice(i,1)[0];
-    lessons.push(item);
-    saveData(); renderLessons();
-  }
-
-  // سحب وإفلات
-  let draggedIndex = null;
-  function onDragStart(e, i){
-    draggedIndex = i;
-    e.dataTransfer.effectAllowed = 'move';
-  }
-  function onDragOver(e, i){
-    e.preventDefault();
-    const el = e.currentTarget;
-    el.classList.add('drag-over');
-    e.dataTransfer.dropEffect = 'move';
-  }
-  function onDragLeave(e, i){
-    e.currentTarget.classList.remove('drag-over');
-  }
-  function onDrop(e, i){
-    e.preventDefault();
-    e.currentTarget.classList.remove('drag-over');
-    if (draggedIndex===null || draggedIndex===i) return;
-    const lessons = folders[currentFolderIndex].lessons;
-    const item = lessons.splice(draggedIndex,1)[0];
-    lessons.splice(i,0,item);
-    draggedIndex = null;
-    saveData(); renderLessons();
-  }
-
-  // ====== أدوات المحرر ======
-  function noFocus(e){ // يمنع تركيز الزر حتى لا يعاد تنفيذه عند Enter
-    e.preventDefault();
-  }
-
-  function focusEditor(){
-    const editor = document.getElementById('editor');
-    editor.focus();
-    // نقل المؤشر لآخر المحتوى
-    const range = document.createRange();
-    range.selectNodeContents(editor);
-    range.collapse(false);
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-  }
-
-  function insertTemplate(className, placeholder) {
-    const editor = document.getElementById('editor');
-    const sel = window.getSelection();
-    const range = sel.rangeCount ? sel.getRangeAt(0) : null;
-
-    const div = document.createElement('div');
-    div.className = className;
-    div.contentEditable = "true";
-    div.innerHTML = placeholder;
-
-    if (range) {
-      range.deleteContents();
-      range.insertNode(div);
-      // سطر جديد عادي بعد البوكس
-      const br = document.createElement('br');
-      div.after(br);
-    } else {
-      editor.appendChild(div);
-      editor.appendChild(document.createElement('br'));
-    }
-
-    saveContent();
-    setTimeout(focusEditor, 0);
-  }
-
-  function execCommand(cmd) {
-    document.execCommand(cmd);
-    saveContent();
-  }
-
-  function applyTextColor(){
-    const color = document.getElementById('textColorPicker').value || '#000000';
-    document.execCommand('styleWithCSS', false, true);
-    document.execCommand('foreColor', false, color);
-    saveContent();
-    focusEditor();
-  }
-
-  function setHighlighterColor(c) { highlightColor = c; }
-
-  function applyHighlight() {
-    document.execCommand('styleWithCSS', false, true);
-    document.execCommand('backColor', false, highlightColor);
-    saveContent();
-    focusEditor();
-  }
-
-  function uploadImage() {
-    document.getElementById('imageInput').click();
-  }
-
-  function showFullscreenImage(src) {
-    const overlay = document.createElement('div');
-    overlay.className = 'fullscreen-image';
-
-    const img = new Image();
-    img.src = src;
-    img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
-    overlay.appendChild(img);
-
-    overlay.innerHTML += `
-      <div class="image-controls">
-        <button class="control-btn" onclick="zoom(1.1)">➕</button>
-        <button class="control-btn" onclick="zoom(0.9)">➖</button>
-        <button class="control-btn" onclick="moveImage(50,0)">➡️</button>
-        <button class="control-btn" onclick="moveImage(-50,0)">⬅️</button>
-        <button class="control-btn" onclick="moveImage(0,-50)">⬆️</button>
-        <button class="control-btn" onclick="moveImage(0,50)">⬇️</button>
-        <button class="control-btn control-close" onclick="document.body.removeChild(this.closest('.fullscreen-image'))">✖</button>
-      </div>
-    `;
-    document.body.appendChild(overlay);
-  }
-
-  function moveImage(x, y) {
-    translateX += x;
-    translateY += y;
-    const img = document.querySelector('.fullscreen-image img');
-    if (img) img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
-  }
-
-  function zoom(factor) {
-    scale *= factor;
-    const img = document.querySelector('.fullscreen-image img');
-    if (img) img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
-  }
-
-  function toggleReadingMode() {
-    const editor = document.getElementById('editor');
-    if (!isReadingMode) {
-      const overlay = document.createElement('div');
-      overlay.className = 'reading-mode-overlay';
-      overlay.innerHTML = `
-        <button class="close-reading-mode" onclick="toggleReadingMode()">✕ إغلاق</button>
-        <div class="reading-content">${editor.innerHTML}</div>
-      `;
-      document.body.appendChild(overlay);
-      overlay.querySelectorAll('img').forEach(img => {
-        img.onclick = () => showFullscreenImage(img.src);
-      });
-    } else {
-      const exist = document.querySelector('.reading-mode-overlay');
-      if (exist) exist.remove();
-    }
-    isReadingMode = !isReadingMode;
-  }
-
-  // ====== البحث مع تمييز ======
-  function highlightSearch() {
-    const input = document.getElementById('searchInput');
-    const text = input.value.trim();
-    const editor = document.getElementById('editor');
-    const content = editor.innerHTML;
-    // إزالة التحديدات السابقة
-    editor.innerHTML = content.replace(/<span class="highlight">(.*?)<\/span>/g, '$1');
-    searchHighlights = [];
-    currentHighlightIndex = -1;
-    if (!text) return;
-
-    const escaped = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`(${escaped})`, 'gi');
-    editor.innerHTML = editor.innerHTML.replace(regex, `<span class="highlight">$1</span>`);
-    searchHighlights = [...editor.querySelectorAll('.highlight')];
-  }
-
-  function nextHighlight() {
-    if (!searchHighlights.length) return;
-    currentHighlightIndex = (currentHighlightIndex + 1) % searchHighlights.length;
-    searchHighlights[currentHighlightIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-
-  function prevHighlight() {
-    if (!searchHighlights.length) return;
-    currentHighlightIndex = (currentHighlightIndex - 1 + searchHighlights.length) % searchHighlights.length;
-    searchHighlights[currentHighlightIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-
-  // ====== الحفظ ======
-  function saveContent() {
-    if (currentFolderIndex !== null && currentLessonIndex !== null) {
-      folders[currentFolderIndex].lessons[currentLessonIndex].content =
-        document.getElementById('editor').innerHTML;
-      saveData();
-    }
-  }
-
-  function saveData() {
-    localStorage.setItem('folders', JSON.stringify(folders));
-  }
-
-  // ====== مساعدات ======
-  function escapeHtml(str){
-    return String(str).replace(/[&<>"']/g, s => ({
-      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-    }[s]));
-  }
-
-  // حفظ تلقائي عند الكتابة أو اللصق
-  const editorEl = document.getElementById('editor');
-  editorEl.addEventListener('input', saveContent);
-  editorEl.addEventListener('paste', () => setTimeout(saveContent, 100));
-  editorEl.addEventListener('blur', saveContent);
-
-  // إدراج الصور عند المؤشر كـ thumbnail
-  document.getElementById('imageInput').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      alert('الحد الأقصى لحجم الصورة 5MB');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-      const img = document.createElement('img');
-      img.src = evt.target.result;
-      img.className = 'image-thumb';
-      img.onclick = () => showFullscreenImage(img.src);
-
-      const sel = window.getSelection();
-      if (sel.rangeCount > 0) {
-        const range = sel.getRangeAt(0);
-        range.deleteContents();
-        range.insertNode(img);
-        range.setStartAfter(img);
-        range.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(range);
-      } else {
-        editorEl.appendChild(img);
-      }
-      saveContent();
-      focusEditor();
-    };
-    reader.readAsDataURL(file);
-    e.target.value = '';
+    lst.appendChild(li);
   });
 
-  // بدء
-  renderFolders();
-  showPage('foldersPage');
+  document.getElementById('totalPrice').textContent = tot;
+}
+function removeOne(i){
+  const t = localStorage.getItem('currentTable');
+  const k = `orders_${t}`;
+  const ord = LS.get(k, []);
+  if(ord[i].qty > 1) ord[i].qty--;
+  else ord.splice(i,1);
+  LS.set(k, ord);
+  displayOrders();
+}
+
+/* ===================== Transfer to Reports (Mandatory) ===================== */
+function askTransfer(){ document.getElementById('transferModal').style.display='flex'; }
+function confirmTransfer(){
+  const t = localStorage.getItem('currentTable');
+  const k = `orders_${t}`;
+  const ord = LS.get(k, []);
+
+  if(ord.length){
+    let all = LS.get('allOrders', []);
+    all = all.concat(ord);
+    LS.set('allOrders', all);
+
+    const cnt = +localStorage.getItem('orderCount') || 0;
+    localStorage.setItem('orderCount', String(cnt+1));
+  }
+  LS.remove(k);
+  document.getElementById('transferModal').style.display='none';
+  displayOrders();
+}
+
+/* ===================== Reports (Password: 24102004) ===================== */
+function openReportLogin(){
+  document.getElementById('reportPassword').value = '';
+  document.getElementById('reportLoginModal').style.display='flex';
+}
+function closeReportLogin(){ document.getElementById('reportLoginModal').style.display='none'; }
+function checkReportPassword(){
+  const pass = document.getElementById('reportPassword').value;
+  if(pass === '24102004'){ closeReportLogin(); openReports(); }
+  else alert('كلمة المرور غير صحيحة');
+}
+function openReports(){
+  const main = document.getElementById('main-content');
+  const all = LS.get('allOrders', []);
+  let total = 0;
+  const summary = {}; // { name: {qty,total} }
+
+  all.forEach(o=>{
+    const s = summary[o.name] || {qty:0,total:0};
+    s.qty += o.qty;
+    s.total += o.price * o.qty;
+    summary[o.name] = s;
+    total += o.price * o.qty;
+  });
+
+  const orderCount = +localStorage.getItem('orderCount') || 0;
+
+  main.innerHTML = `
+    <h2>التقارير</h2>
+    <div class="row">
+      <div class="btn btn-secondary" style="cursor:default;">إجمالي المبيعات: <b>${total}</b> ج</div>
+      <div class="btn btn-secondary" style="cursor:default;">عدد العمليات: <b>${orderCount}</b></div>
+    </div>
+    <h3>الأصناف المبيعة (مجمعة)</h3>
+    <ul class="report-list" id="reportList"></ul>
+    <button class="btn btn-danger" onclick="resetAll()">إعادة الضبط</button>
+    <button class="btn btn-secondary" onclick="loadHome()">رجوع</button>
+  `;
+
+  // عرض الملخص بترتيب تنازلي حسب الإجمالي
+  const lst = document.getElementById('reportList');
+  Object.entries(summary)
+    .sort((a,b)=> b[1].total - a[1].total)
+    .forEach(([name, info])=>{
+      const li = document.createElement('li');
+      li.innerHTML = `<span>${name} × ${info.qty}</span><span>${info.total} ج</span>`;
+      lst.appendChild(li);
+    });
+}
+function resetAll(){
+  if(!confirm('هل أنت متأكد من إعادة الضبط (مسح كل الطلبات والتقارير)؟')) return;
+
+  // امسح الطلبات في كل الطاولات
+  const num = +localStorage.getItem('numTables') || 0;
+  for(let i=1;i<=num;i++){ LS.remove(`orders_${i}`); }
+
+  // امسح التقرير والعداد
+  LS.set('allOrders', []);
+  localStorage.setItem('orderCount', '0');
+
+  // إبقاء المنيو وأسماء الطاولات كما هي
+  openReports();
+}
+
+/* ===================== Init ===================== */
+loadTables();
 </script>
 </body>
 </html>
